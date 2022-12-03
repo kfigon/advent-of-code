@@ -9,36 +9,33 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPart1_test(t *testing.T) {
+func Test_example(t *testing.T) {
 	lines := []string{
 		"A Y",
 		"B X",
 		"C Z",
 	}
-	assert.Equal(t, 15, solve(lines, p1))
+	t.Run("p1", func(t *testing.T) {
+		assert.Equal(t, 15, solve(lines, p1))
+	})
+
+	t.Run("p2", func(t *testing.T) {
+		assert.Equal(t, 12, solve(lines, p2))
+	})
 }
 
-func TestPart2_test(t *testing.T) {
-	lines := []string{
-		"A Y",
-		"B X",
-		"C Z",
-	}
-	assert.Equal(t, 12, solve(lines, p2))
-}
-
-func TestPart1(t *testing.T) {
+func Test_files(t *testing.T) {
 	d, err := os.ReadFile("data.txt")
 	require.NoError(t, err)
 	lines := strings.Split(string(d), "\r\n")
-	assert.Equal(t, 14827, solve(lines, p1))
-}
 
-func TestPart2(t *testing.T) {
-	d, err := os.ReadFile("data.txt")
-	require.NoError(t, err)
-	lines := strings.Split(string(d), "\r\n")
-	assert.Equal(t, 13889, solve(lines, p2))
+	t.Run("p1", func(t *testing.T) {
+		assert.Equal(t, 14827, solve(lines, p1))
+	})
+
+	t.Run("p2", func(t *testing.T) {
+		assert.Equal(t, 13889, solve(lines, p2))
+	})
 }
 
 type result int

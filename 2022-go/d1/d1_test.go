@@ -10,12 +10,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPart1(t *testing.T) {
-	assert.Equal(t, 66719, solveP1(readFile("data.txt")))
-}
+func TestD1(t *testing.T) {
+	file := readFile("data.txt")
+	t.Run("p1", func(t *testing.T) {
+		assert.Equal(t, 66719, solveP1(file))
+	})
 
-func TestPart2(t *testing.T) {
-	assert.Equal(t, 198551, solveP2(readFile("data.txt")))
+	t.Run("p2", func(t *testing.T) {
+		assert.Equal(t, 198551, solveP2(file))
+	})
 }
 
 func readFile(filename string) []int {

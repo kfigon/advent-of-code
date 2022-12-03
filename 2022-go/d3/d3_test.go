@@ -17,6 +17,7 @@ wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
 ttgJtRGJQctTZtZT
 CrZsJsPPZsGzwwsLwLmpwMDw`
 	bags := parse(strings.Split(raw, "\n"))
+	
 	t.Run("p1", func(t *testing.T) {
 		assert.Equal(t, 157, p1(bags))
 	})
@@ -28,8 +29,8 @@ CrZsJsPPZsGzwwsLwLmpwMDw`
 func Test_real(t *testing.T) {
 	raw, err := os.ReadFile("data.txt")
 	require.NoError(t, err)
-
 	bags := parse(strings.Split(string(raw), "\r\n"))
+
 	t.Run("p1", func(t *testing.T) {
 		assert.Equal(t, 8493, p1(bags))
 	})
