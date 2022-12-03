@@ -16,8 +16,8 @@ PmmdzqPrVvPwwTWBwg
 wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
 ttgJtRGJQctTZtZT
 CrZsJsPPZsGzwwsLwLmpwMDw`
-	bags := parse(strings.Split(raw, "\n"))
-	
+	bags := strings.Split(raw, "\n")
+
 	t.Run("p1", func(t *testing.T) {
 		assert.Equal(t, 157, p1(bags))
 	})
@@ -29,7 +29,7 @@ CrZsJsPPZsGzwwsLwLmpwMDw`
 func Test_real(t *testing.T) {
 	raw, err := os.ReadFile("data.txt")
 	require.NoError(t, err)
-	bags := parse(strings.Split(string(raw), "\r\n"))
+	bags := strings.Split(string(raw), "\r\n")
 
 	t.Run("p1", func(t *testing.T) {
 		assert.Equal(t, 8493, p1(bags))
@@ -44,23 +44,6 @@ func TestPrio(t *testing.T) {
 	assert.Equal(t, 26, priority('z'))
 	assert.Equal(t, 27, priority('A'))
 	assert.Equal(t, 52, priority('Z'))
-}
-
-type bag struct {
-	first string
-	second string
-}
-
-func parse(lines []string) []bag {
-	out := []bag{}
-	for _, line := range lines {
-		b := bag{
-			first: line[:len(line)/2],
-			second: line[len(line)/2:],
-		}
-		out = append(out, b)
-	}
-	return out
 }
 
 func priority(char rune) int {
@@ -80,10 +63,13 @@ func buildSet(s string) map[rune]bool{
 	return occurences
 }
 
-func p1(bags []bag) int {
-	repeating := func(b bag) rune {
-		occurences := buildSet(b.first)
-		for _, v := range b.second {
+func p1(bags []string) int {
+	repeating := func(b string) rune {
+		first := b[:len(b)/2]
+		second := b[len(b)/2:]
+
+		occurences := buildSet(first)
+		for _, v := range second {
 			if ok := occurences[v]; ok {
 				return v
 			}
@@ -98,14 +84,14 @@ func p1(bags []bag) int {
 	return out
 }
 
-func p2(bags []bag) int {
+func p2(bags []string) int {
 	const limit = 3
 
-	findCommonItem := func(bags []bag) rune{
+	findCommonItem := func(bags []string) rune{
 		occurencesInAllBags := map[rune]int{}
 
 		for _, bag := range bags {
-			bagSet := buildSet(bag.first+bag.second)
+			bagSet := buildSet(bag)
 			for c := range bagSet {
 				v := occurencesInAllBags[c]
 				occurencesInAllBags[c] = v+1
