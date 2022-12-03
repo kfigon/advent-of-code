@@ -98,6 +98,8 @@ func p1(bags []bag) int {
 }
 
 func p2(bags []bag) int {
+	const limit = 3
+
 	findCommonItem := func(bags []bag) rune{
 		occurencesInAllBags := map[rune]int{}
 
@@ -110,7 +112,7 @@ func p2(bags []bag) int {
 		}
 
 		for item,count := range occurencesInAllBags {
-			if count == 3 {
+			if count == limit {
 				return item
 			}
 		}
@@ -118,7 +120,6 @@ func p2(bags []bag) int {
 	}
 
 	out := 0
-	limit := 3
 	for i := 0; i < len(bags); i+=limit {
 		out += priority(findCommonItem(bags[i:i+limit]))
 	}
