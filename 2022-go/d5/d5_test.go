@@ -21,27 +21,31 @@ move 1 from 2 to 1
 move 3 from 1 to 3
 move 2 from 2 to 1
 move 1 from 1 to 2`
-	cranes, rules := parse(strings.Split(input, "\n"))
+	lines := strings.Split(input, "\n")
 	t.Run("p1", func(t *testing.T) {
+		cranes, rules := parse(lines)
 		assert.Equal(t, "CMZ", p1(cranes, rules))
 	})
 
 	t.Run("p2", func(t *testing.T) {
-		assert.Equal(t, "1234", p2(cranes, rules))
+		cranes, rules := parse(lines)
+		assert.Equal(t, "MCD", p2(cranes, rules))
 	})
 }
 
 func TestActual(t *testing.T) {
 	raw, err := os.ReadFile("data.txt")
 	require.NoError(t, err)
+	lines := strings.Split(string(raw), "\r\n")
 
-	cranes, rules := parse(strings.Split(string(raw), "\r\n"))
 	t.Run("p1", func(t *testing.T) {
-		assert.Equal(t, "sdaf", p1(cranes, rules))
+		cranes, rules := parse(lines)
+		assert.Equal(t, "QNNTGTPFN", p1(cranes, rules))
 	})
 
 	t.Run("p2", func(t *testing.T) {
-		assert.Equal(t, "adsf", p2(cranes, rules))
+		cranes, rules := parse(lines)
+		assert.Equal(t, "GGNPJBTTR", p2(cranes, rules))
 	})
 }
 
@@ -51,12 +55,28 @@ func TestStack(t *testing.T) {
 	s.push("2")
 	s.push("3")
 
-	v, ok := s.pop()
-	assert.True(t, ok)
-	assert.Equal(t, "3", v)
+	fn := func(exp string) {
+		v, ok := s.pop()
+		assert.True(t, ok)
+		assert.Equal(t, exp, v)
+	}
+
+	fn("3")
+	fn("2")
+	fn("1")
+
+	_, ok := s.pop()
+	assert.False(t, ok)
 }
 
 type stack []string
+
+func reverse(s []string) {
+	ln := len(s)
+	for i := 0; i < ln/2; i++ {
+		s[i],s[ln-1-i] = s[ln-1-i],s[i]
+	}
+}
 
 func (s *stack) push(v string) {
 	*s = append(*s, v)
@@ -71,6 +91,7 @@ func (s *stack) pop() (string, bool) {
 	return out, true
 }
 
+
 type craneSet []stack
 type rule struct {
 	howMany     int
@@ -78,33 +99,47 @@ type rule struct {
 	destination int
 }
 
+// all cranes are 4 bytes wide, but the last one. Align it
+func alignedLineToProcess(line string) string {
+	return line + " "
+}
+
 func parse(lines []string) (craneSet, []rule) {
+	const craneWidth = 4
+
 	cranes := craneSet{}
 	rules := []rule{}
 	parsingCranes := true
 
-	howManyCranes := (len(lines[0]) + 1) / 4
+	howManyCranes := len(alignedLineToProcess(lines[0])) / craneWidth
 	for i := 0; i < howManyCranes; i++ {
 		cranes = append(cranes, stack{})
 	}
 
 	for _, line := range lines {
-		if line == "" {
+		if parsingCranes && line == "" {
 			parsingCranes = false
+
+			// my parser is bad, reverse the ordering of boxes
+			for _, c := range cranes {
+				reverse(c)
+			}
+
 			continue
 		}
 
 		if parsingCranes {
 			for i := 0; i < howManyCranes; i++ {
-				startIds := i * 4
-				endIds := (i + 1) * 4
+				startIds := i * craneWidth
+				endIds := (i + 1) * craneWidth
 
-				lineToProcess := (line + " ")[startIds:endIds]
+				lineToProcess := alignedLineToProcess(line)[startIds:endIds]
 				if strings.HasPrefix(strings.TrimSpace(lineToProcess), "[") {
+					// parsing from the top, need to reverse it later
 					cranes[i].push(string(lineToProcess[1])) // skip '[',']'
 				}
 			}
-		} else {
+		} else { // parsing rules
 			re, _ := regexp.Compile(`move (\d+) from (\d+) to (\d+)`)
 			results := re.FindAllStringSubmatch(line, -1)[0]
 			howMany, _ := strconv.Atoi(results[1])
@@ -120,14 +155,7 @@ func parse(lines []string) (craneSet, []rule) {
 	return cranes, rules
 }
 
-func p1(cranes craneSet, rules []rule) string {
-	for _, r := range rules {
-		for i := 0; i < r.howMany; i++ {
-			v, _ := cranes[r.source-1].pop()
-			cranes[r.destination-1].push(v)
-		}
-	}
-
+func buildOutput(cranes craneSet) string {
 	out := ""
 	for _, c := range cranes {
 		v, ok := c.pop()
@@ -138,6 +166,29 @@ func p1(cranes craneSet, rules []rule) string {
 	return out
 }
 
+func p1(cranes craneSet, rules []rule) string {
+	for _, r := range rules {
+		for i := 0; i < r.howMany; i++ {
+			v, _ := cranes[r.source-1].pop()
+			cranes[r.destination-1].push(v)
+		}
+	}
+
+	return buildOutput(cranes)
+}
+
 func p2(cranes craneSet, rules []rule) string {
-	return ""
+	for _, r := range rules {
+		var vs []string
+		for i := 0; i < r.howMany; i++ {
+			v, _ := cranes[r.source-1].pop()
+			vs = append(vs, v)
+		}
+		reverse(vs)
+		for _, v := range vs {
+			cranes[r.destination-1].push(v)
+		}
+	}
+
+	return buildOutput(cranes)
 }
