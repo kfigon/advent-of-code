@@ -18,7 +18,7 @@ func TestExample(t *testing.T) {
 	})
 
 	t.Run("p2", func(t *testing.T) {
-		t.Fail()
+		assert.Equal(t, 24933642, p2(data))
 	})
 }
 
@@ -32,7 +32,7 @@ func TestFile(t *testing.T) {
 	})
 
 	t.Run("p2", func(t *testing.T) {
-		t.Fail()
+		assert.Equal(t, 7421137, p2(data))
 	})
 }
 
@@ -161,6 +161,45 @@ func p1(fs directory) int {
 		out += v
 	}
 
+	return out
+}
+
+func p2(fs directory) int {
+	const totalSize = 70000000
+	const required = 30000000
+
+	sizes := countSpace(fs)
+	unused := totalSize - sizes["/"]
+	toFind := required-unused
+
+	min := sizes["/"]
+	for _, v := range sizes {
+		if v >= toFind && v < min{
+			min = v
+		}
+	}
+
+	return min
+}
+
+func countSpace(fs directory) map[string]int {
+	out := map[string]int{}
+	var foo func(*directory)
+	foo = func(d *directory) {
+		if d == nil {
+			return
+		} else if _, ok := out[d.name]; !ok {
+			out[d.name] = d.size()
+		}
+
+		for _, v := range d.subDirectories {
+			foo(v)
+		}
+	}
+	out[fs.name] = fs.size()
+	for _, v := range fs.subDirectories {
+		foo(v)
+	}
 	return out
 }
 
