@@ -28,8 +28,7 @@ func TestFile(t *testing.T) {
 
 	data := parse(strings.Split(string(rawData), "\r\n"))
 	t.Run("p1", func(t *testing.T) {
-		assert.NotEqual(t, 1083035, p1(data))
-		assert.NotEqual(t, 1062058, p1(data))
+		assert.Equal(t, 1334506, p1(data))
 	})
 
 	t.Run("p2", func(t *testing.T) {
@@ -136,15 +135,16 @@ func parseFileLine(line string) (pair[int, string], bool) {
 
 func p1(fs directory) int {
 	const limit = 100000
+	out := 0
 
-	dirs := map[string]int{}
 	var foo func(*directory)
 	foo = func(d *directory) {
 		if d == nil {
 			return
 		}
-		if _, ok := dirs[d.name]; !ok {
-			dirs[d.name] = d.size()
+		s := d.size()
+		if s <= limit {
+			out += s
 		}
 		
 		for _, v := range d.subDirectories {
@@ -156,13 +156,9 @@ func p1(fs directory) int {
 		foo(v)
 	}
 
-	dirs[fs.name] = fs.size()
-	
-	out := 0
-	for _,v := range dirs {
-		if v <= limit {
-			out += v
-		}
+	v := fs.size()
+	if v <= limit {
+		out += v
 	}
 
 	return out
