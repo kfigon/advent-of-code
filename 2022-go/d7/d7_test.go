@@ -18,7 +18,7 @@ func TestExample(t *testing.T) {
 	})
 
 	t.Run("p2", func(t *testing.T) {
-
+		t.Fail()
 	})
 }
 
@@ -28,11 +28,12 @@ func TestFile(t *testing.T) {
 
 	data := parse(strings.Split(string(rawData), "\r\n"))
 	t.Run("p1", func(t *testing.T) {
-		assert.Greater(t, 1062058, p1(data))
+		assert.NotEqual(t, 1083035, p1(data))
+		assert.NotEqual(t, 1062058, p1(data))
 	})
 
 	t.Run("p2", func(t *testing.T) {
-
+		t.Fail()
 	})
 }
 
@@ -134,13 +135,18 @@ func parseFileLine(line string) (pair[int, string], bool) {
 }
 
 func p1(fs directory) int {
+	const limit = 100000
+
 	dirs := map[string]int{}
 	var foo func(*directory)
 	foo = func(d *directory) {
 		if d == nil {
 			return
 		}
-		dirs[d.name] = d.size()
+		if _, ok := dirs[d.name]; !ok {
+			dirs[d.name] = d.size()
+		}
+		
 		for _, v := range d.subDirectories {
 			foo(v)
 		}
@@ -149,13 +155,16 @@ func p1(fs directory) int {
 	for _, v := range fs.subDirectories {
 		foo(v)
 	}
+
+	dirs[fs.name] = fs.size()
 	
 	out := 0
 	for _,v := range dirs {
-		if v <= 100000 {
+		if v <= limit {
 			out += v
 		}
 	}
+
 	return out
 }
 
