@@ -1,6 +1,7 @@
 package d7
 
 import (
+	"fmt"
 	"os"
 	"regexp"
 	"strconv"
@@ -12,7 +13,7 @@ import (
 )
 
 func TestExample(t *testing.T) {
-	data := parse(strings.Split(testInput, "\n"))
+	data, _ := parse(strings.Split(testInput, "\n"))
 	t.Run("p1", func(t *testing.T) {
 		assert.Equal(t, 95437, p1(data))
 	})
@@ -26,7 +27,7 @@ func TestFile(t *testing.T) {
 	rawData, err := os.ReadFile("data.txt")
 	require.NoError(t, err)
 
-	data := parse(strings.Split(string(rawData), "\r\n"))
+	data, _ := parse(strings.Split(string(rawData), "\r\n"))
 	t.Run("p1", func(t *testing.T) {
 		assert.Equal(t, 1334506, p1(data))
 	})
@@ -76,7 +77,7 @@ func (s *stack[T]) pop() (T, bool) {
 	return out, true
 }
 
-func parse(lines []string) directory {
+func parse(lines []string) (directory, error) {
 	dirStack := &stack[*directory]{vs: []*directory{}}
 	root := directory{
 		name: "/",
@@ -112,10 +113,10 @@ func parse(lines []string) directory {
 			fdata := file{size: f.a, name: f.b}
 			(*currentDir).files = append((*currentDir).files, fdata)
 		} else {
-			return directory{} // unknown command
+			return directory{}, fmt.Errorf("unknown command %v", line)
 		}
 	}
-	return root
+	return root, nil
 }
 
 type pair[T any, V any] struct {
