@@ -37,7 +37,6 @@ func TestFile(t *testing.T) {
 
 	rules := parse(strings.Split(string(raw), "\r\n"))
 	t.Run("p1", func(t *testing.T) {
-		// too high
 		assert.Equal(t, 5930, p1(rules))
 	})
 
