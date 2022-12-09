@@ -136,7 +136,7 @@ func (r *rope) move(d direction) {
 		}
 	}
 	prev := r.parts[0]
-	moveOneField(&r.parts[0])	
+	moveOneField(&r.parts[0])
 	for i := 1; i < len(r.parts); i++ {
 		if !r.parts[i-1].neighbours(r.parts[i]){
 			tmp := r.parts[i]
