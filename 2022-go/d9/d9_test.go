@@ -1,11 +1,14 @@
 package d9
 
 import (
+	"math"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const example = `R 4
@@ -28,19 +31,32 @@ func TestExample(t *testing.T) {
 	})
 }
 
+func TestFile(t *testing.T) {
+	raw, err := os.ReadFile("data.txt")
+	require.NoError(t, err)
+
+	rules := parse(strings.Split(string(raw), "\r\n"))
+	t.Run("p1", func(t *testing.T) {
+		// too high
+		assert.Equal(t, 5930, p1(rules))
+	})
+
+	t.Run("p2", func(t *testing.T) {
+		t.Fail()
+	})
+}
+
 type coord struct {
 	x int
 	y int
 }
 
-func(c coord) samePlane(other coord) bool {
-	return c.x == other.x || c.y == other.y
-}
+func (c coord) neighbours(other coord) bool {
+	xDif := math.Abs(float64(c.x) - float64(other.x))
+	yDif := math.Abs(float64(c.y) - float64(other.y))
 
-func(c coord) samePosition(other coord) bool {
-	return c.x == other.x && c.y == other.y
+	return xDif <= 1 && yDif <= 1
 }
-
 
 type direction int
 const (
@@ -49,6 +65,11 @@ const (
 	left
 	right
 )
+
+func(d direction) String() string {
+	return []string{"up", "down", "left", "right"}[d]
+}
+
 type rule struct {
 	d direction
 	step int
@@ -81,34 +102,34 @@ type rope struct {
 	tail coord
 }
 
-func(r *rope) move(rul rule) {
-	if r.head.samePosition(r.tail) {
-		
-	} else if r.head.samePlane(r.tail){
-
-	} else { // diagonal
-
-	}
-
-	// pixel grid indexing
-	switch rul.d {
-	case up:
-		r.head.y -= rul.step
-	case down:
-		r.head.y += rul.step
-	case left:
-		r.head.x -= rul.step
-	case right:
-		r.head.x += rul.step
-	}
-}
-
 func p1(rules []rule) int {
+	// pixel grid indexing
+	moveOneField := func(c *coord, d direction) {
+		switch d {
+		case up:
+			c.y--
+		case down:
+			c.y++
+		case left:
+			c.x--
+		case right:
+			c.x++
+		}
+	}
+
 	tailPosition := map[coord]struct{}{}
 	rop := &rope{}
+	tailPosition[rop.tail]= struct{}{}
 	for _, r := range rules {
-		rop.move(r)
-		tailPosition[rop.tail]=struct{}{}
+		for i := 0; i < r.step; i++ {
+
+			oldHead := rop.head
+			moveOneField(&rop.head, r.d)
+			if !rop.tail.neighbours(rop.head){
+				rop.tail = oldHead
+				tailPosition[rop.tail]=struct{}{}
+			}
+		}
 	}
 	return len(tailPosition)
 }
