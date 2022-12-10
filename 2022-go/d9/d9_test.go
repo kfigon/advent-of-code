@@ -55,9 +55,7 @@ func TestFile(t *testing.T) {
 	})
 
 	t.Run("p2", func(t *testing.T) {
-		assert.Less(t, p2(rules), 4581)
-		assert.Greater(t, p2(rules), 2436)
-		assert.Equal(t, -1, p2(rules))
+		assert.Equal(t, 2443, p2(rules))
 	})
 }
 
@@ -138,35 +136,16 @@ func (r *rope) move(d direction) {
 	}
 
 	moveDiagonaly := func(leader coord, c *coord) {
-		switch d {
-		case up:
-			c.y--
-			if leader.x > c.x { //leaderOnRight
-				c.x++
-			} else if leader.x < c.x { //leaderOnLeft
-				c.x--
-			}
-		case down:
-			c.y++
-			if leader.x > c.x {
-				c.x++
-			} else if leader.x < c.x {
-				c.x--
-			}
-		case left:
-			c.x--
-			if leader.y < c.y { // leaderIsUp {
-				c.y--
-			} else if leader.y > c.y {
-				c.y++
-			}
-		case right:
+		if leader.x > c.x { //leaderOnRight
 			c.x++
-			if leader.y < c.y {
-				c.y--
-			} else if leader.y > c.y {
-				c.y++
-			}
+		} else if leader.x < c.x { //leaderOnLeft
+			c.x--
+		}
+		
+		if leader.y < c.y { // leaderIsUp {
+			c.y--
+		} else if leader.y > c.y {
+			c.y++
 		}
 	}
 
