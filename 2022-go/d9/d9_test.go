@@ -56,6 +56,7 @@ func TestFile(t *testing.T) {
 
 	t.Run("p2", func(t *testing.T) {
 		assert.Less(t, p2(rules), 4581)
+		assert.Greater(t, p2(rules), 2436)
 		assert.Equal(t, -1, p2(rules))
 	})
 }
@@ -135,13 +136,44 @@ func (r *rope) move(d direction) {
 			c.x++
 		}
 	}
-	prev := r.parts[0]
+
+	moveDiagonaly := func(leader coord, c *coord) {
+		switch d {
+		case up:
+			c.y--
+			if leader.x > c.x { //leaderOnRight
+				c.x++
+			} else if leader.x < c.x { //leaderOnLeft
+				c.x--
+			}
+		case down:
+			c.y++
+			if leader.x > c.x {
+				c.x++
+			} else if leader.x < c.x {
+				c.x--
+			}
+		case left:
+			c.x--
+			if leader.y < c.y { // leaderIsUp {
+				c.y--
+			} else if leader.y > c.y {
+				c.y++
+			}
+		case right:
+			c.x++
+			if leader.y < c.y {
+				c.y--
+			} else if leader.y > c.y {
+				c.y++
+			}
+		}
+	}
+
 	moveOneField(&r.parts[0])
 	for i := 1; i < len(r.parts); i++ {
 		if !r.parts[i-1].neighbours(r.parts[i]){
-			tmp := r.parts[i]
-			r.parts[i] = prev
-			prev = tmp
+			moveDiagonaly(r.parts[i-1], &r.parts[i])
 		}
 	}
 }
