@@ -23,7 +23,7 @@ func TestBigExample(t *testing.T) {
 	})
 
 	t.Run("p2", func(t *testing.T) {
-		t.Fail()
+		assert.Equal(t, expectedP2, p2(instructions))
 	})
 }
 
@@ -99,3 +99,14 @@ func increaseCpu(cpu *int, callback func(int)) {
 	*cpu++
 	callback(*cpu)
 }
+
+func p2(instructions []instruction) string {
+	return ""
+}
+
+const expectedP2 = `##..##..##..##..##..##..##..##..##..##..
+###...###...###...###...###...###...###.
+####....####....####....####....####....
+#####.....#####.....#####.....#####.....
+######......######......######......####
+#######.......#######.......#######.....`
