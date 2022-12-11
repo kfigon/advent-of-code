@@ -1,7 +1,6 @@
 package d11
 
 import (
-	"fmt"
 	"os"
 	"sort"
 	"strconv"
@@ -35,7 +34,7 @@ func TestFile(t *testing.T) {
 
 	t.Run("p2", func(t *testing.T) {
 		rules := parse(strings.Split(string(raw),"\r\n"))
-		assert.Equal(t, 123, p2(rules))
+		assert.Equal(t, 32059801242, p2(rules))
 	})
 }
 
@@ -70,6 +69,7 @@ type monkey struct {
 	testDivisibleBy int
 	ruleTrue int
 	ruleFalse int
+	commonDivisor int
 }
 
 func parse(lines []string) []*monkey {
@@ -139,6 +139,8 @@ func round(monkeys []*monkey, reduceWory bool) map[int]int {
 			v := m.op.eval(item)
 			if reduceWory {
 				v = v/3
+			} else {
+				v = v % m.commonDivisor
 			}
 
 			if v % m.testDivisibleBy == 0 {
@@ -159,10 +161,6 @@ func solve(monkeys []*monkey, reduceWoryLevel bool, rounds int) int {
 		for monkey,inters := range results {
 			interactions[monkey]+=inters
 		}
-		
-		if i == 1 || i == 20 || i == 1000 || i == 2000 || i == 3000 || i == 4000 || i == 5000 || i == 6000 || i == 7000 || i == 8000 || i == 9000 || i == 10000 {
-			fmt.Println(interactions)
-		}
 	}
 	interactionsTab := []int{}
 	for _, v := range interactions {
@@ -179,6 +177,14 @@ func p1(monkeys []*monkey) int {
 }
 
 func p2(monkeys []*monkey) int {
+	// https://en.wikipedia.org/wiki/Modular_arithmetic
+	commonDiv := 1
+	for _, m := range monkeys {
+		commonDiv *= m.testDivisibleBy
+	}
+	for _, m := range monkeys {
+		m.commonDivisor = commonDiv
+	}
 	return solve(monkeys, false, 10000)
 }
 
