@@ -39,35 +39,6 @@ func TestFile(t *testing.T) {
 	})
 }
 
-func TestPositionMapping(t *testing.T) {
-	testCases := []struct {
-		in int
-		exp int
-	}{
-		{1,1},
-		{2,2},
-		{5,5},
-		{10,10},
-		{20,20},
-		{40,40},
-		
-		{41,1},
-		{51,11},
-		{80,40},
-		
-		{81,1},
-		{85,5},
-		{120,40},
-		
-		{201,1},
-	}
-	for _, tC := range testCases {
-		t.Run(fmt.Sprintf("%v->%v", tC.in, tC.exp), func(t *testing.T) {
-			assert.Equal(t, tC.exp, registerToPosition(tC.in))
-		})
-	}
-}
-
 const example = `noop
 addx 3
 addx -5`
@@ -157,47 +128,37 @@ func p1(instructions []instruction) int {
 	return power
 }
 
-func registerToPosition(reg int) int {
-	zeroBased := reg-1
-	return (zeroBased % 40) + 1
-}
-
 func p2(instructions []instruction) string {
 	c := newCpu()
 	output := ""
 
 	c.duringCycleCallback = func(c cpu) {
-		if c.cpuCycle == 200 {
-			fmt.Println("puapka na dzika")
-		}
+		zeroBasedCpu := c.cpuCycle-1
+		zeroReg := c.register-1
+
 		drawn := false
-		middlePixelPosition := registerToPosition(c.register)+1
-		cycle := c.cpuCycle % 40
+		middlePixelPosition := (zeroReg % 40)+1
+		cycle := zeroBasedCpu % 40
 
 		if cycle == middlePixelPosition - 1 {
-			fmt.Println(c.cpuCycle," -> #", ", pixel", middlePixelPosition-1)
 			output += "#"
 			drawn = true
 		}
 
 		if cycle == middlePixelPosition {
-			fmt.Println(c.cpuCycle," -> #", ", sprite on", middlePixelPosition)
 			output += "#"
 			drawn = true
 		}
 		if cycle == middlePixelPosition + 1 {
-			fmt.Println(c.cpuCycle," -> #", ", sprite on", middlePixelPosition)
 			output += "#"
 			drawn = true
 		}
 
 		if !drawn {
-			fmt.Println(c.cpuCycle," -> .", ", sprite on", middlePixelPosition)
 			output += "."
 		}
 		
-		if cycle == 0 {
-			fmt.Println("newline on cycle", c.cpuCycle)
+		if cycle == 39 && c.cpuCycle != 240 {
 			output += "\n"
 		}
 	}
