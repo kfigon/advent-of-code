@@ -1,7 +1,6 @@
 package d10
 
 import (
-	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -35,7 +34,8 @@ func TestFile(t *testing.T) {
 	})
 
 	t.Run("p2", func(t *testing.T) {
-		t.Fail()
+		expectedResult := strings.ReplaceAll(readFile("expectedResult.txt", t),"\r","")
+		assert.Equal(t, expectedResult, p2(instructions))
 	})
 }
 
@@ -131,25 +131,24 @@ func p1(instructions []instruction) int {
 func p2(instructions []instruction) string {
 	c := newCpu()
 	output := ""
+	const width = 40
+	const numberOfLines = 6
 
 	c.duringCycleCallback = func(c cpu) {
 		zeroBasedCpu := c.cpuCycle-1
 		zeroReg := c.register-1
 
 		drawn := false
-		middlePixelPosition := (zeroReg % 40)+1
-		cycle := zeroBasedCpu % 40
+		middlePixelPosition := (zeroReg % width) + 1
+		cycle := zeroBasedCpu % width
 
 		if cycle == middlePixelPosition - 1 {
 			output += "#"
 			drawn = true
-		}
-
-		if cycle == middlePixelPosition {
+		} else if cycle == middlePixelPosition {
 			output += "#"
 			drawn = true
-		}
-		if cycle == middlePixelPosition + 1 {
+		} else if cycle == middlePixelPosition + 1 {
 			output += "#"
 			drawn = true
 		}
@@ -157,14 +156,11 @@ func p2(instructions []instruction) string {
 		if !drawn {
 			output += "."
 		}
-		
-		if cycle == 39 && c.cpuCycle != 240 {
+
+		// last row and not last line
+		if cycle == (width-1) && c.cpuCycle != width*numberOfLines {
 			output += "\n"
 		}
-	}
-	
-	c.endOfCycleCallback = func(c cpu) {
-		fmt.Println("register", c.register)
 	}
 
 	for _, instr := range instructions {
