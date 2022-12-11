@@ -47,6 +47,7 @@ func TestPositionMapping(t *testing.T) {
 		{1,1},
 		{2,2},
 		{5,5},
+		{10,10},
 		{20,20},
 		{40,40},
 		
@@ -111,8 +112,8 @@ func (c *cpu) singleCycle(fn func()) {
 		c.duringCycleCallback(*c)
 	}
 
+	c.cpuCycle++
 	fn()
-
 	if c.endOfCycleCallback != nil {
 		c.endOfCycleCallback(*c)
 	}
@@ -121,15 +122,12 @@ func (c *cpu) singleCycle(fn func()) {
 func (c *cpu) processInstruction(instr instruction) {
 	if instr.cmd == "noop" {
 		c.singleCycle(func() {
-			c.cpuCycle++
 		})
 	} else if instr.cmd == "addx" {
 		c.singleCycle(func() {
-			c.cpuCycle++
 		})
 
 		c.singleCycle(func() {
-			c.cpuCycle++
 			c.register += instr.val	
 		})
 	}
@@ -169,33 +167,45 @@ func p2(instructions []instruction) string {
 	output := ""
 
 	c.duringCycleCallback = func(c cpu) {
+		if c.cpuCycle == 200 {
+			fmt.Println("puapka na dzika")
+		}
 		drawn := false
-		position := registerToPosition(c.register)
+		middlePixelPosition := registerToPosition(c.register)+1
 		cycle := c.cpuCycle % 40
 
-		if cycle == position-1 {
+		if cycle == middlePixelPosition - 1 {
+			fmt.Println(c.cpuCycle," -> #", ", pixel", middlePixelPosition-1)
 			output += "#"
 			drawn = true
 		}
 
-		if cycle == position {
+		if cycle == middlePixelPosition {
+			fmt.Println(c.cpuCycle," -> #", ", sprite on", middlePixelPosition)
 			output += "#"
 			drawn = true
 		}
-		if cycle == position+1 {
+		if cycle == middlePixelPosition + 1 {
+			fmt.Println(c.cpuCycle," -> #", ", sprite on", middlePixelPosition)
 			output += "#"
 			drawn = true
 		}
 
 		if !drawn {
+			fmt.Println(c.cpuCycle," -> .", ", sprite on", middlePixelPosition)
 			output += "."
 		}
 		
 		if cycle == 0 {
+			fmt.Println("newline on cycle", c.cpuCycle)
 			output += "\n"
 		}
 	}
 	
+	c.endOfCycleCallback = func(c cpu) {
+		fmt.Println("register", c.register)
+	}
+
 	for _, instr := range instructions {
 		c.processInstruction(instr)
 	}
