@@ -63,6 +63,42 @@ func parse(lines []string) []instruction {
 	return out
 }
 
+type cpu struct {
+	register int
+	cpuCycle int
+	duringCycleCallback func(cpu)
+	endOfCycleCallback func(cpu)
+}
+
+func newCpu() *cpu {
+	return &cpu{
+		register: 1,
+		cpuCycle: 1,
+	}
+}
+
+func (c *cpu) singleCycle() {
+	if c.duringCycleCallback != nil {
+		c.duringCycleCallback(*c)
+	}
+
+	c.cpuCycle++
+
+	if c.endOfCycleCallback != nil {
+		c.endOfCycleCallback(*c)
+	}
+}
+
+func (c *cpu) processInstruction(instr instruction) {
+	if instr.cmd == "noop" {
+		c.singleCycle()
+	} else if instr.cmd == "addx" {
+		c.singleCycle()
+		c.register += instr.val
+		c.singleCycle()
+	}
+}
+
 func p1(instructions []instruction) int {
 	probePoints := map[int]bool{
 		20: true,
@@ -72,32 +108,19 @@ func p1(instructions []instruction) int {
 		180: true,
 		220: true,
 	}
-	register := 1
-	cpuCycle := 1
-	power := 0
+	c := newCpu()
 
-	callback := func(c int) {
-		if probePoints[c] {
-			power += c * register
+	power := 0
+	c.endOfCycleCallback = func(c cpu) {
+		if probePoints[c.cpuCycle] {
+			power += c.cpuCycle * c.register
 		}
 	}
 
 	for _, instr := range instructions {
-		if instr.cmd == "noop" {
-			increaseCpu(&cpuCycle, callback)
-		} else if instr.cmd == "addx" {
-			increaseCpu(&cpuCycle, callback)
-			register += instr.val
-			increaseCpu(&cpuCycle, callback)
-		}
+		c.processInstruction(instr)
 	}
-
 	return power
-}
-
-func increaseCpu(cpu *int, callback func(int)) {
-	*cpu++
-	callback(*cpu)
 }
 
 func p2(instructions []instruction) string {
