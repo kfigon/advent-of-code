@@ -106,12 +106,12 @@ func newCpu() *cpu {
 	}
 }
 
-func (c *cpu) singleCycle() {
+func (c *cpu) singleCycle(fn func()) {
 	if c.duringCycleCallback != nil {
 		c.duringCycleCallback(*c)
 	}
 
-	c.cpuCycle++
+	fn()
 
 	if c.endOfCycleCallback != nil {
 		c.endOfCycleCallback(*c)
@@ -120,11 +120,18 @@ func (c *cpu) singleCycle() {
 
 func (c *cpu) processInstruction(instr instruction) {
 	if instr.cmd == "noop" {
-		c.singleCycle()
+		c.singleCycle(func() {
+			c.cpuCycle++
+		})
 	} else if instr.cmd == "addx" {
-		c.singleCycle()
-		c.register += instr.val
-		c.singleCycle()
+		c.singleCycle(func() {
+			c.cpuCycle++
+		})
+
+		c.singleCycle(func() {
+			c.cpuCycle++
+			c.register += instr.val	
+		})
 	}
 }
 
