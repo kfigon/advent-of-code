@@ -1,6 +1,7 @@
 package d11
 
 import (
+	"fmt"
 	"os"
 	"sort"
 	"strconv"
@@ -12,20 +13,29 @@ import (
 )
 
 func TestExample(t *testing.T) {
-	rules := parse(strings.Split(example,"\n"))
-	
 	t.Run("p1", func(t *testing.T) {
+		rules := parse(strings.Split(example,"\n"))
 		assert.Equal(t, 10605, p1(rules))
+	})
+
+	t.Run("p2", func(t *testing.T) {
+		rules := parse(strings.Split(example,"\n"))
+		assert.Equal(t, 2713310158, p2(rules))
 	})
 }
 
 func TestFile(t *testing.T) {
 	raw, err := os.ReadFile("data.txt")
 	require.NoError(t, err)
-	rules := parse(strings.Split(string(raw),"\r\n"))
 	
 	t.Run("p1", func(t *testing.T) {
+		rules := parse(strings.Split(string(raw),"\r\n"))
 		assert.Equal(t, 120384, p1(rules))
+	})
+
+	t.Run("p2", func(t *testing.T) {
+		rules := parse(strings.Split(string(raw),"\r\n"))
+		assert.Equal(t, 123, p2(rules))
 	})
 }
 
@@ -120,14 +130,17 @@ func parse(lines []string) []*monkey {
 	return out
 }
 
-func round(monkeys []*monkey) map[int]int {
+func round(monkeys []*monkey, reduceWory bool) map[int]int {
 	interactions := map[int]int{}
 	for i := 0; i < len(monkeys); i++ {
 		m := monkeys[i]
 		for _, item := range m.items {
 			interactions[i]++
 			v := m.op.eval(item)
-			v = v/3
+			if reduceWory {
+				v = v/3
+			}
+
 			if v % m.testDivisibleBy == 0 {
 				monkeys[m.ruleTrue].items = append(monkeys[m.ruleTrue].items, v)
 			} else {
@@ -139,13 +152,16 @@ func round(monkeys []*monkey) map[int]int {
 	return interactions
 }
 
-func p1(monkeys []*monkey) int {
-	const rounds = 20
+func solve(monkeys []*monkey, reduceWoryLevel bool, rounds int) int {
 	interactions := map[int]int{}
-	for i := 0; i < rounds; i++ {
-		results := round(monkeys)
+	for i := 1; i <= rounds; i++ {
+		results := round(monkeys, reduceWoryLevel)
 		for monkey,inters := range results {
 			interactions[monkey]+=inters
+		}
+		
+		if i == 1 || i == 20 || i == 1000 || i == 2000 || i == 3000 || i == 4000 || i == 5000 || i == 6000 || i == 7000 || i == 8000 || i == 9000 || i == 10000 {
+			fmt.Println(interactions)
 		}
 	}
 	interactionsTab := []int{}
@@ -156,6 +172,14 @@ func p1(monkeys []*monkey) int {
 	sort.Ints(interactionsTab)
 	ln := len(interactionsTab)
 	return interactionsTab[ln-1] * interactionsTab[ln-2]
+}
+
+func p1(monkeys []*monkey) int {
+	return solve(monkeys, true, 20)
+}
+
+func p2(monkeys []*monkey) int {
+	return solve(monkeys, false, 10000)
 }
 
 const example = `Monkey 0:
