@@ -50,15 +50,15 @@ type monkey struct {
 	ruleFalse int
 }
 
-func parse(lines []string) []monkey {
-	out := []monkey{}
-	current := monkey{}
+func parse(lines []string) []*monkey {
+	out := []*monkey{}
+	current := &monkey{}
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		if line == "" {
 			out = append(out, current)
-			current = monkey{}
+			current = &monkey{}
 			continue
 		} else if strings.HasPrefix(line, "Monkey") {
 			continue
@@ -68,7 +68,7 @@ func parse(lines []string) []monkey {
 
 			for _, n := range nums {
 				v, _ := strconv.Atoi(n)
-				current.items = append(current.items, v)
+				current.items = append((*current).items, v)
 			}
 		} else if strings.HasPrefix(line, "Operation") {
 			intermediate := strings.TrimPrefix(line, "Operation: new = ")
@@ -108,7 +108,7 @@ func parse(lines []string) []monkey {
 	return out
 }
 
-func round(monkeys []monkey) map[int]int {
+func round(monkeys []*monkey) map[int]int {
 	interactions := map[int]int{}
 	for i := 0; i < len(monkeys); i++ {
 		m := monkeys[i]
@@ -127,7 +127,7 @@ func round(monkeys []monkey) map[int]int {
 	return interactions
 }
 
-func p1(monkeys []monkey) int {
+func p1(monkeys []*monkey) int {
 	const rounds = 20
 	interactions := map[int]int{}
 	for i := 0; i < rounds; i++ {
