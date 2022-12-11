@@ -1,6 +1,7 @@
 package d10
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -36,6 +37,34 @@ func TestFile(t *testing.T) {
 	t.Run("p2", func(t *testing.T) {
 		t.Fail()
 	})
+}
+
+func TestPositionMapping(t *testing.T) {
+	testCases := []struct {
+		in int
+		exp int
+	}{
+		{1,1},
+		{2,2},
+		{5,5},
+		{20,20},
+		{40,40},
+		
+		{41,1},
+		{51,11},
+		{80,40},
+		
+		{81,1},
+		{85,5},
+		{120,40},
+		
+		{201,1},
+	}
+	for _, tC := range testCases {
+		t.Run(fmt.Sprintf("%v->%v", tC.in, tC.exp), func(t *testing.T) {
+			assert.Equal(t, tC.exp, registerToPosition(tC.in))
+		})
+	}
 }
 
 const example = `noop
@@ -123,8 +152,48 @@ func p1(instructions []instruction) int {
 	return power
 }
 
+func registerToPosition(reg int) int {
+	zeroBased := reg-1
+	return (zeroBased % 40) + 1
+}
+
 func p2(instructions []instruction) string {
-	return ""
+	c := newCpu()
+	output := ""
+
+	c.duringCycleCallback = func(c cpu) {
+		drawn := false
+		position := registerToPosition(c.register)
+		cycle := c.cpuCycle % 40
+
+		if cycle == position-1 {
+			output += "#"
+			drawn = true
+		}
+
+		if cycle == position {
+			output += "#"
+			drawn = true
+		}
+		if cycle == position+1 {
+			output += "#"
+			drawn = true
+		}
+
+		if !drawn {
+			output += "."
+		}
+		
+		if cycle == 0 {
+			output += "\n"
+		}
+	}
+	
+	for _, instr := range instructions {
+		c.processInstruction(instr)
+	}
+
+	return output
 }
 
 const expectedP2 = `##..##..##..##..##..##..##..##..##..##..
