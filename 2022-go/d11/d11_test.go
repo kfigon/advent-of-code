@@ -1,12 +1,14 @@
 package d11
 
 import (
+	"os"
 	"sort"
 	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestExample(t *testing.T) {
@@ -14,6 +16,16 @@ func TestExample(t *testing.T) {
 	
 	t.Run("p1", func(t *testing.T) {
 		assert.Equal(t, 10605, p1(rules))
+	})
+}
+
+func TestFile(t *testing.T) {
+	raw, err := os.ReadFile("data.txt")
+	require.NoError(t, err)
+	rules := parse(strings.Split(string(raw),"\r\n"))
+	
+	t.Run("p1", func(t *testing.T) {
+		assert.Equal(t, 120384, p1(rules))
 	})
 }
 
@@ -117,9 +129,9 @@ func round(monkeys []*monkey) map[int]int {
 			v := m.op.eval(item)
 			v = v/3
 			if v % m.testDivisibleBy == 0 {
-				monkeys[m.ruleTrue].items = append(monkeys[m.ruleTrue].items, item)
+				monkeys[m.ruleTrue].items = append(monkeys[m.ruleTrue].items, v)
 			} else {
-				monkeys[m.ruleFalse].items = append(monkeys[m.ruleFalse].items, item)
+				monkeys[m.ruleFalse].items = append(monkeys[m.ruleFalse].items, v)
 			}
 		}
 		m.items = []int{}
@@ -143,7 +155,7 @@ func p1(monkeys []*monkey) int {
 
 	sort.Ints(interactionsTab)
 	ln := len(interactionsTab)
-	return interactionsTab[ln-1] + interactionsTab[ln-2]
+	return interactionsTab[ln-1] * interactionsTab[ln-2]
 }
 
 const example = `Monkey 0:
