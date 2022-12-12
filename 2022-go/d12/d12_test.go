@@ -115,5 +115,42 @@ func areConnected(src, dst byte) bool {
 }
 
 func p1(g graph, src, dst coord) int {
+	dstE := dst.toEntry()
+
+	pathTo := map[entry]entry{}
+	visited := set{}
+	q := queue{}
+
+	var dfs func(entry)
+	dfs = func(e entry) {
+		if _, ok := visited[e]; ok {
+			return
+		}
+		visited[e] = void{}
+		for child := range g[e] {
+			q = append(q, child)
+		}
+		for len(q) > 0 {
+			next, _ := q.dequeue()
+			dfs(next)
+		}
+	}
+
+	dfs(src.toEntry())
 	return 0
+}
+
+type queue []entry
+func (q queue) enqueue(e entry) {
+	q = append(q, e)
+}
+
+func (q queue) dequeue() (entry, bool) {
+	if len(q) == 0 {
+		var e entry
+		return e, false
+	}
+	out := q[len(q)-1]
+	q = q[:len(q)-1]
+	return out, true
 }
