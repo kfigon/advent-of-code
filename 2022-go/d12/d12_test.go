@@ -1,7 +1,6 @@
 package d12
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"testing"
@@ -81,7 +80,6 @@ func parse(lines []string) graph {
 					continue
 				}
 				candidate := lines[nei.y][nei.x]
-				fmt.Println(string(current), string(candidate))		
 				if !areConnected(byte(current), candidate) {
 					continue
 				}
@@ -116,41 +114,54 @@ func areConnected(src, dst byte) bool {
 
 func p1(g graph, src, dst coord) int {
 	dstE := dst.toEntry()
-
 	pathTo := map[entry]entry{}
 	visited := set{}
-	q := queue{}
+	q := &queue{}
 
-	var dfs func(entry)
-	dfs = func(e entry) {
-		if _, ok := visited[e]; ok {
-			return
+	q.enqueue(src.toEntry())
+	for len(*q) > 0 {
+		current, _ := q.dequeue()
+		if _,ok := visited[current]; ok {
+			continue
 		}
-		visited[e] = void{}
-		for child := range g[e] {
-			q = append(q, child)
+		visited[current] = void{}
+		
+		if current == dstE  {
+			break
 		}
-		for len(q) > 0 {
-			next, _ := q.dequeue()
-			dfs(next)
+
+		for child := range g[current] {
+			pathTo[child] = current
+			q.enqueue(child)
 		}
 	}
 
-	dfs(src.toEntry())
-	return 0
+	out := 0
+	nextNode := dstE
+	for {
+		v, ok := pathTo[nextNode]
+		if !ok || v == src.toEntry() {
+			break
+		}
+		nextNode = v
+		out++
+	}
+	return out
+
+	// todo: https://www.youtube.com/watch?v=WvR9voi0y2I
 }
 
 type queue []entry
-func (q queue) enqueue(e entry) {
-	q = append(q, e)
+func (q *queue) enqueue(e entry) {
+	*q = append(*q, e)
 }
 
-func (q queue) dequeue() (entry, bool) {
-	if len(q) == 0 {
+func (q *queue) dequeue() (entry, bool) {
+	if len(*q) == 0 {
 		var e entry
 		return e, false
 	}
-	out := q[len(q)-1]
-	q = q[:len(q)-1]
+	out := (*q)[len(*q)-1]
+	*q = (*q)[:len(*q)-1]
 	return out, true
 }
