@@ -1,6 +1,7 @@
 package d12
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"testing"
@@ -15,9 +16,10 @@ acctuvwj
 abdefghi`
 
 func TestExample(t *testing.T) {
-	data := parse(strings.Split(example,"\n"))
+	lines := strings.Split(example,"\n")
+	data := parse(lines)
 	t.Run("p1", func(t *testing.T) {
-		assert.Equal(t, 31, p1(data))
+		assert.Equal(t, 31, p1(data, findCoord(lines, 'S')[0],findCoord(lines, 'E')[0]))
 	})
 }
 
@@ -28,6 +30,18 @@ type graph map[entry]set
 type coord struct {
 	y int
 	x int
+}
+
+func findCoord(lines []string, v byte) []coord {
+	out := []coord{}
+	for y, line := range lines {
+		for x,c := range line {
+			if byte(c) == v {
+				out = append(out, coord{x:x, y:y})
+			}
+		}
+	}
+	return out
 }
 
 func (g graph) connect(a,b coord) {
@@ -59,7 +73,7 @@ func parse(lines []string) graph {
 		for x, current := range line {
 			candidates := []coord{
 				{y-1,x-1},{y-1,x},{y-1,x+1},
-				{y,x-1},{y,x},{y,x+1},
+				{y,x-1},		  {y,x+1},
 				{y+1,x-1},{y+1,x},{y+1,x+1},
 			}
 			for _, nei := range candidates {
@@ -67,28 +81,39 @@ func parse(lines []string) graph {
 					continue
 				}
 				candidate := lines[nei.y][nei.x]
+				fmt.Println(string(current), string(candidate))		
 				if !areConnected(byte(current), candidate) {
 					continue
 				}
-				g.connect(coord{x:x, y:y},nei)
+				g.connect(
+					coord{ 
+						x:int(convert(byte(x))),
+						y:int(convert(byte(y))),
+					},
+					coord{ 
+						x:int(convert(byte(nei.x))),
+						y:int(convert(byte(nei.y))),
+					})
 			}
 		}
 	}
 	return g
 }
-
-func areConnected(src, dst byte) bool {
-	convert := func(v byte) byte {
-		if v == 'S' {
-			return 'a'
-		} else if v == 'E' {
-			return 'z'
-		}
-		return v
+func convert(v byte) byte {
+	if v == 'S' {
+		return 'a'
+	} else if v == 'E' {
+		return 'z'
 	}
-	return convert(src) + 1 <= convert(dst)
+	return v
 }
 
-func p1(g graph) int {
+func areConnected(src, dst byte) bool {
+	s := convert(src)
+	d := convert(dst)
+	return s <= d+1
+}
+
+func p1(g graph, src, dst coord) int {
 	return 0
 }
