@@ -135,7 +135,6 @@ func parse(lines []string) []pair {
 
 // json parser might be easier, but I like the challenge
 func parseSingle(line string) []any {
-	out := []any{}
 	i := 0
 
 	parseInt := func() int {
@@ -179,7 +178,7 @@ func parseSingle(line string) []any {
 		i++
 		return parseList()
 	}
-	return out
+	return nil
 }
 
 func p1(pairs []pair) int {
@@ -239,13 +238,7 @@ func ordered(a []any, b []any) bool {
 		}
 	}
 
-	if aI >= len(a) {
-		return true
-	} else if bI >= len(b) && aI < len(a) {
-		return false
-	}
-
-	return false
+	return aI >= len(a)
 }
 
 const example = `[1,1,3,1,1]
