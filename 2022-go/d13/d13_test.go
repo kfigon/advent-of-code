@@ -1,6 +1,7 @@
 package d13
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 	"testing"
@@ -32,6 +33,62 @@ func TestParser(t *testing.T) {
 		t.Run(tC.input, func(t *testing.T) {
 			got := parseSingle(tC.input)
 			assert.Equal(t, tC.exp, got)
+		})
+	}
+}
+
+func TestCompare(t *testing.T) {
+	testCases := []struct {
+		input1 string
+		input2 string
+		exp bool
+	}{
+		{
+			input1: "[1,1,3,1,1]",
+			input2: "[1,1,5,1,1]",
+			exp: true,
+		},
+		{
+			input1: "[[1],[2,3,4]]",
+			input2: "[[1],4]",
+			exp: true,
+		},
+		{
+			input1: "[9]",
+			input2: "[[8,7,6]]",
+			exp: false,
+		},
+		{
+			input1: "[[4,4],4,4]",
+			input2: "[[4,4],4,4,4]",
+			exp: true,
+		},
+		{
+			input1: "[7,7,7,7]",
+			input2: "[7,7,7]",
+			exp: false,
+		},
+		{
+			input1: "[]",
+			input2: "[3]",
+			exp: true,
+		},
+		{
+			input1: "[[[]]]",
+			input2: "[[]]",
+			exp: false,
+		},
+		{
+			input1: "[1,[2,[3,[4,[5,6,7]]]],8,9]",
+			input2: "[1,[2,[3,[4,[5,6,0]]]],8,9]",
+			exp: false,
+		},
+	}
+	for i, tC := range testCases {
+		t.Run(fmt.Sprintf("Pair %v", i), func(t *testing.T) {
+			a := parseSingle(tC.input1)
+			b := parseSingle(tC.input2)
+			assert.Equal(t, tC.exp, ordered(a,b))
 		})
 	}
 }
@@ -102,16 +159,60 @@ func parseSingle(line string) []any {
 
 func p1(pairs []pair) int {
 	out := 0
-	for _, p := range pairs {
+	for i, p := range pairs {
 		if ordered(p.a, p.b) {
-			out++
+			out += (i+1)
 		}
 	}
 	return out
 }
 
 func ordered(a []any, b []any) bool {
-	return false
+	aI := 0
+	bI := 0
+	for aI <len(a) && bI < len(b) {
+		aV := a[aI]
+		bV := b[bI]
+		
+		aInt, aOk := aV.(int)
+		bInt, bOk := bV.(int)
+		if aOk && bOk{
+			if aInt < bInt {
+				return true
+			}
+			aI++
+			bI++
+			continue
+		}
+
+		aList, aOk := aV.([]any)
+		bList, bOk := bV.([]any)
+		if aOk && bOk {
+			if !ordered(aList, bList) {
+				return false
+			}
+			aI++
+			bI++
+		} else if !aOk && bOk {
+			if !ordered([]any{aV}, bList) {
+				return false
+			}
+			aI++
+			bI++
+		} else if aOk && !bOk {
+			if !ordered(aList, []any{bV}) {
+				return false
+			}
+			aI++
+			bI++
+		} else {
+			// unreachable?
+			aI++
+			bI++
+		}
+	}
+
+	return true
 }
 
 const example = `[1,1,3,1,1]
