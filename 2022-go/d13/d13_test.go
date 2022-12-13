@@ -13,6 +13,7 @@ import (
 
 func TestExample(t *testing.T) {
 	data := parse(strings.Split(example, "\n"))
+	assert.Equal(t, 8, len(data))
 	t.Run("p1", func(t *testing.T) {
 		assert.Equal(t, 13, p1(data))
 	})
@@ -125,7 +126,8 @@ type pair struct {
 
 func parse(lines []string) []pair {
 	out := []pair{}
-	for i := 0; i < len(lines)-3; i+=3 {
+
+	for i := 0; i < len(lines)-1; i+=3 {
 		first := lines[i]
 		second := lines[i+1]
 		out = append(out, pair{a:parseSingle(first), b:parseSingle(second)})
