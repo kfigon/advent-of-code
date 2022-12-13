@@ -20,7 +20,11 @@ func TestExample(t *testing.T) {
 	lines := strings.Split(example, "\n")
 	data := parse(lines)
 	t.Run("p1", func(t *testing.T) {
-		assert.Equal(t, 31, p1(data, findCoord(lines, 'S')[0], findCoord(lines, 'E')[0]))
+		assert.Equal(t, 31, p1(data, lines))
+	})
+
+	t.Run("p2", func(t *testing.T) {
+		assert.Equal(t, 29, p2(data, lines))
 	})
 }
 
@@ -31,7 +35,11 @@ func TestFile(t *testing.T) {
 	lines := strings.Split(string(raw), "\r\n")
 	data := parse(lines)
 	t.Run("p1", func(t *testing.T) {
-		assert.Equal(t, 434, p1(data, findCoord(lines, 'S')[0], findCoord(lines, 'E')[0]))
+		assert.Equal(t, 497, p1(data, lines))
+	})
+
+	t.Run("p2", func(t *testing.T) {
+		assert.Equal(t, 492, p2(data, lines))
 	})
 }
 
@@ -116,14 +124,9 @@ func parse(lines []string) graph {
 					continue
 				}
 				g.connect(
-					coord{
-						x: int(convert(byte(x))),
-						y: int(convert(byte(y))),
-					},
-					coord{
-						x: int(convert(byte(nei.x))),
-						y: int(convert(byte(nei.y))),
-					})
+					coord{x: x, y: y},
+					coord{x: nei.x, y: nei.y},
+				)
 			}
 		}
 	}
@@ -144,7 +147,7 @@ func areConnected(src, dst byte) bool {
 	return s+1 >= d
 }
 
-func p1(g graph, src, dst coord) int {
+func solve(g graph, src, dst coord) int {
 	distances := map[coord]int{} // also visited set
 	q := &queue{}
 
@@ -166,6 +169,31 @@ func p1(g graph, src, dst coord) int {
 	}
 
 	return distances[dst]
+}
+
+func p1(g graph, lines []string) int {
+	src := findCoord(lines, 'S')[0]
+	dst := findCoord(lines, 'E')[0]
+	return solve(g, src, dst)
+}
+
+func p2(g graph, lines []string) int {
+	// ideally search the shortest path from E to any 'a', but need to rework the
+	// areConnected method and move it to bfs
+	// but i'm lazy :D
+
+	src := findCoord(lines, 'a')
+	dst := findCoord(lines, 'E')[0]
+	src = append(src, findCoord(lines, 'S')[0])
+
+	min := 99999999999
+	for _, s := range src {
+		r := solve(g, s,dst)
+		if r < min && r != 0 {
+			min = r
+		}
+	}
+	return min
 }
 
 type queue []coord
