@@ -2,16 +2,29 @@ package d13
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestExample(t *testing.T) {
 	data := parse(strings.Split(example, "\n"))
 	t.Run("p1", func(t *testing.T) {
+		assert.Equal(t, 13, p1(data))
+	})
+}
+
+func TestFile(t *testing.T) {
+	raw,err := os.ReadFile("data.txt")
+	require.NoError(t, err)
+
+	data := parse(strings.Split(string(raw), "\r\n"))
+	t.Run("p1", func(t *testing.T) {
+		assert.NotEqual(t, 711, p1(data)) // too low
 		assert.Equal(t, 13, p1(data))
 	})
 }
@@ -176,9 +189,11 @@ func ordered(a []any, b []any) bool {
 		
 		aInt, aOk := aV.(int)
 		bInt, bOk := bV.(int)
-		if aOk && bOk{
+		if aOk && bOk {
 			if aInt < bInt {
 				return true
+			} else if aInt > bInt {
+				return false 
 			}
 			aI++
 			bI++
@@ -210,6 +225,12 @@ func ordered(a []any, b []any) bool {
 			aI++
 			bI++
 		}
+	}
+
+	if aI >= len(a) {
+		return true
+	} else if bI >= len(b) && aI < len(a) {
+		return false
 	}
 
 	return true
