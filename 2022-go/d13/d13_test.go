@@ -51,6 +51,7 @@ func parse(lines []string) []pair {
 	return out
 }
 
+// json parser might be easier, but I like the challenge
 func parseSingle(line string) []any {
 	out := []any{}
 	i := 0
@@ -79,19 +80,21 @@ func parseSingle(line string) []any {
 				list = append(list, parseInt())
 			} else if c == ',' {
 				i++
-				continue
 			} else if c == ']' {
 				i++
 				return list
 			} else if c =='[' {
 				i++
-				return parseList()
+				list = append(list, parseList())
+			} else {
+				i++ // unknown
 			}
 		}
 		return list
 	}
 
 	if line[0] == '[' {
+		i++
 		return parseList()
 	}
 	return out
