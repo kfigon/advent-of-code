@@ -85,7 +85,7 @@ func TestCompare(t *testing.T) {
 		},
 	}
 	for i, tC := range testCases {
-		t.Run(fmt.Sprintf("Pair %v", i), func(t *testing.T) {
+		t.Run(fmt.Sprintf("Pair %v", i+1), func(t *testing.T) {
 			a := parseSingle(tC.input1)
 			b := parseSingle(tC.input2)
 			assert.Equal(t, tC.exp, ordered(a,b))
