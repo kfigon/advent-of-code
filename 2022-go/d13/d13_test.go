@@ -25,8 +25,7 @@ func TestFile(t *testing.T) {
 
 	data := parse(strings.Split(string(raw), "\r\n"))
 	t.Run("p1", func(t *testing.T) {
-		assert.NotEqual(t, 711, p1(data)) // too low
-		assert.Equal(t, 13, p1(data))
+		assert.Equal(t, 5905, p1(data))
 	})
 }
 
@@ -62,52 +61,62 @@ func TestCompare(t *testing.T) {
 	testCases := []struct {
 		input1 string
 		input2 string
-		exp bool
+		exp comparisonResult
 	}{
 		{
 			input1: "[1,1,3,1,1]",
 			input2: "[1,1,5,1,1]",
-			exp: true,
+			exp: ok,
 		},
 		{
 			input1: "[[1],[2,3,4]]",
 			input2: "[[1],4]",
-			exp: true,
+			exp: ok,
 		},
 		{
 			input1: "[9]",
 			input2: "[[8,7,6]]",
-			exp: false,
+			exp: notOk,
 		},
 		{
 			input1: "[[4,4],4,4]",
 			input2: "[[4,4],4,4,4]",
-			exp: true,
+			exp: ok,
 		},
 		{
 			input1: "[7,7,7,7]",
 			input2: "[7,7,7]",
-			exp: false,
+			exp: notOk,
 		},
 		{
 			input1: "[]",
 			input2: "[3]",
-			exp: true,
+			exp: ok,
 		},
 		{
 			input1: "[[[]]]",
 			input2: "[[]]",
-			exp: false,
+			exp: notOk,
 		},
 		{
 			input1: "[1,[2,[3,[4,[5,6,7]]]],8,9]",
 			input2: "[1,[2,[3,[4,[5,6,0]]]],8,9]",
-			exp: false,
+			exp: notOk,
 		},
 		{
 			input1: "[3,1]",
 			input2: "[3]",
-			exp: false,
+			exp: notOk,
+		},
+		{ // 10
+			input1: "[1]",
+			input2: "[[1]]",
+			exp: equal,
+		},
+		{
+			input1: "[1]",
+			input2: "[1]",
+			exp: equal,
 		},
 	}
 	for i, tC := range testCases {
@@ -186,14 +195,21 @@ func parseSingle(line string) []any {
 func p1(pairs []pair) int {
 	out := 0
 	for i, p := range pairs {
-		if ordered(p.a, p.b) {
+		if ordered(p.a, p.b) == ok {
 			out += (i+1)
 		}
 	}
 	return out
 }
 
-func ordered(a []any, b []any) bool {
+type comparisonResult int
+const (
+	equal comparisonResult = iota
+	ok
+	notOk
+)
+
+func ordered(a []any, b []any) comparisonResult {
 	aI := 0
 	bI := 0
 	for aI <len(a) && bI < len(b) {
@@ -204,9 +220,9 @@ func ordered(a []any, b []any) bool {
 		bInt, bOk := bV.(int)
 		if aOk && bOk {
 			if aInt < bInt {
-				return true
+				return ok
 			} else if aInt > bInt {
-				return false 
+				return notOk 
 			}
 			aI++
 			bI++
@@ -216,20 +232,26 @@ func ordered(a []any, b []any) bool {
 		aList, aOk := aV.([]any)
 		bList, bOk := bV.([]any)
 		if aOk && bOk {
-			if !ordered(aList, bList) {
-				return false
+			if res := ordered(aList, bList); res == notOk {
+				return notOk
+			} else if res == ok {
+				return ok
 			}
 			aI++
 			bI++
 		} else if !aOk && bOk {
-			if !ordered([]any{aV}, bList) {
-				return false
+			if res := ordered([]any{aV}, bList); res == notOk{
+				return notOk
+			} else if res == ok {
+				return ok
 			}
 			aI++
 			bI++
 		} else if aOk && !bOk {
-			if !ordered(aList, []any{bV}) {
-				return false
+			if res := ordered(aList, []any{bV}); res == notOk{
+				return notOk
+			} else if res == ok {
+				return ok
 			}
 			aI++
 			bI++
@@ -240,7 +262,13 @@ func ordered(a []any, b []any) bool {
 		}
 	}
 
-	return aI >= len(a)
+	if aI >= len(a) && bI < len(b) {
+		return ok
+	} else if bI >= len(b) && aI < len(a) {
+		return notOk
+	}
+
+	return equal
 }
 
 const example = `[1,1,3,1,1]
