@@ -103,6 +103,11 @@ func TestCompare(t *testing.T) {
 			input2: "[1,[2,[3,[4,[5,6,0]]]],8,9]",
 			exp: false,
 		},
+		{
+			input1: "[3,1]",
+			input2: "[3]",
+			exp: false,
+		},
 	}
 	for i, tC := range testCases {
 		t.Run(fmt.Sprintf("Pair %v", i+1), func(t *testing.T) {
@@ -123,7 +128,7 @@ func parse(lines []string) []pair {
 	for i := 0; i < len(lines)-3; i+=3 {
 		first := lines[i]
 		second := lines[i+1]
-		out = append(out, pair{parseSingle(first), parseSingle(second)})
+		out = append(out, pair{a:parseSingle(first), b:parseSingle(second)})
 	}
 	return out
 }
@@ -228,7 +233,7 @@ func ordered(a []any, b []any) bool {
 			aI++
 			bI++
 		} else {
-			// unreachable?
+			// unreachable
 			aI++
 			bI++
 		}
@@ -240,7 +245,7 @@ func ordered(a []any, b []any) bool {
 		return false
 	}
 
-	return true
+	return false
 }
 
 const example = `[1,1,3,1,1]
