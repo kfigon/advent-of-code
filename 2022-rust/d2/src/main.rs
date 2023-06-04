@@ -1,10 +1,10 @@
-use std::os;
+#![allow(dead_code, non_snake_case)]
 
 fn main() {
     println!("Hello, world!");
 }
 
-const example_data: &'static str = "A Y
+const EXAMPLE_DATA: &str = "A Y
 B X
 C Z";
 
@@ -20,6 +20,10 @@ enum Outcome {
     Lose,
     Draw
 }
+
+struct WinInstruction(Outcome);
+struct OpponentMove(Move);
+struct MyMove(Move);
 
 fn map_enemy(c: &str) -> Result<OpponentMove, String> {
     match c {
@@ -99,23 +103,19 @@ fn score(myMove: &MyMove, outcome: &Outcome) -> i32 {
 
 #[test]
 fn p1_test() {
-    assert_eq!(Ok(15), solve_p1(example_data));
+    assert_eq!(Ok(15), solve_p1(EXAMPLE_DATA));
     assert_eq!(Ok(14827), solve_p1(&std::fs::read_to_string("data.txt").unwrap()));
 }
 
 #[test]
 fn p2_test() {
-    assert_eq!(Ok(12), solve_p2(example_data));
+    assert_eq!(Ok(12), solve_p2(EXAMPLE_DATA));
     assert_eq!(Ok(13889), solve_p2(&std::fs::read_to_string("data.txt").unwrap()));
 }
 
-struct WinInstruction(Outcome);
-struct OpponentMove(Move);
-struct MyMove(Move);
-
 fn split(line: &str) -> Result<(&str, &str), String> {
     line
-    .split_once(" ")
+    .split_once(' ')
     .ok_or(format!("Invalid line: {}", line))
 }
 
@@ -137,14 +137,22 @@ fn splt_line_p2(line: &str) -> Result<(OpponentMove, WinInstruction), String> {
     Ok((enemy, strat))
 }
 
+fn do_game(v: Result<(OpponentMove, MyMove), String>) -> Result<(MyMove, Outcome), String> {
+    v.map(|vals| {
+        let out = game(&vals.1, &vals.0);
+        (vals.1, out)
+    })
+}
+
+fn get_score(v: Result<(MyMove, Outcome), String>) -> Result<i32, String> {
+    v.map(|vals|score(&vals.0, &vals.1))
+}
+
 fn solve_p1(data: &str) -> Result<i32, String> {
     let res: Result<Vec<i32>, String> = data.lines()
     .map(splt_line_p1)
-    .map(|v| v.map(|vals| {
-        let out = game(&vals.1, &vals.0);
-        (vals.1, out)
-    }))
-    .map(|v| v.map(|vals|score(&vals.0, &vals.1)))
+    .map(do_game)
+    .map(get_score)
     .collect();
     
     res.map(|v| v.iter().sum())
@@ -157,11 +165,8 @@ fn solve_p2(data: &str) -> Result<i32, String> {
         let myMove = find_my_move(&vals.0, &vals.1);
         (vals.0, myMove)
     }))
-    .map(|v| v.map(|vals| {
-        let out = game(&vals.1, &vals.0);
-        (vals.1, out)
-    }))
-    .map(|v| v.map(|vals|score(&vals.0, &vals.1)))
+    .map(do_game)
+    .map(get_score)
     .collect();
 
     res.map(|v| v.iter().sum())
