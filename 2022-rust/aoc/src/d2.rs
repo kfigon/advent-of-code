@@ -1,9 +1,5 @@
 #![allow(dead_code, non_snake_case)]
 
-fn main() {
-    println!("Hello, world!");
-}
-
 const EXAMPLE_DATA: &str = "A Y
 B X
 C Z";
@@ -104,13 +100,13 @@ fn score(myMove: &MyMove, outcome: &Outcome) -> i32 {
 #[test]
 fn p1_test() {
     assert_eq!(Ok(15), solve_p1(EXAMPLE_DATA));
-    assert_eq!(Ok(14827), solve_p1(&std::fs::read_to_string("data.txt").unwrap()));
+    assert_eq!(Ok(14827), solve_p1(&std::fs::read_to_string("d2.txt").unwrap()));
 }
 
 #[test]
 fn p2_test() {
     assert_eq!(Ok(12), solve_p2(EXAMPLE_DATA));
-    assert_eq!(Ok(13889), solve_p2(&std::fs::read_to_string("data.txt").unwrap()));
+    assert_eq!(Ok(13889), solve_p2(&std::fs::read_to_string("d2.txt").unwrap()));
 }
 
 fn split(line: &str) -> Result<(&str, &str), String> {

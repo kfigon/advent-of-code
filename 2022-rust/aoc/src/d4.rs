@@ -1,6 +1,3 @@
-fn main() {
-    println!("Hello, world!");
-}
 
 #[cfg(test)]
 mod tests{
@@ -25,12 +22,12 @@ mod tests{
 
     #[test]
     fn file_1() {
-        assert_eq!(p1(&std::fs::read_to_string("data.txt").unwrap()), 562)
+        assert_eq!(p1(&std::fs::read_to_string("d4.txt").unwrap()), 562)
     }
 
     #[test]
     fn file_2() {
-        assert_eq!(p2(&std::fs::read_to_string("data.txt").unwrap()), 924)
+        assert_eq!(p2(&std::fs::read_to_string("d4.txt").unwrap()), 924)
     }
 }
 
