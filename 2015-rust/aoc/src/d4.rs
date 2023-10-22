@@ -21,7 +21,7 @@ fn p2_test() {
 
 pub fn calc_start_with(s: &str, num: usize) -> Option<u64> {
     for i in 0..u64::MAX {
-        let digest = md5::compute(format!("{s}{i}").as_bytes());
+        let digest = md5::compute(format!("{s}{i}"));
         let hex = format!("{:?}", digest);
         if hex.chars().take(num).all(|v| v == '0') {
             return Some(i);
