@@ -1,4 +1,4 @@
-use std::{fs, str::FromStr, fmt::format};
+use std::{fs, str::FromStr};
 
 #[test]
 fn p1_test() {
