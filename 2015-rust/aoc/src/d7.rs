@@ -50,9 +50,18 @@ impl FromStr for Op {
             return Err(format!("signal not routed: {s}"));
         }
         let first_part = parts[0];
-        let target = parts[1];
+        let target = parts[1].to_string();
 
-        
+        let cmd_parts = first_part.split_whitespace().collect::<Vec<_>>();
+        match cmd_parts[..] {
+            [v] => Ok(Self::Load(v.parse()?, target)),
+            [a, "AND", b] => Ok(Self::And(a.parse()?, b.parse()?, target)),
+            [a, "OR", b] => Ok(Self::Or(a.parse()?, b.parse()?, target)),
+            [a, "LSHIFT", b] => Ok(Self::Lshift(a.parse()?, b.parse().map_err(|_| format!("invalid shift val: {s}"))?, target)),
+            [a, "RSHIFT", b] => Ok(Self::Rshift(a.parse()?, b.parse().map_err(|_| format!("invalid shift val: {s}"))?, target)),
+            ["NOT", b] => Ok(Self::Not(b.parse()?, target)),
+            _ => Err(format!("invalid cmd {s}")),
+        }
     }
 }
 
