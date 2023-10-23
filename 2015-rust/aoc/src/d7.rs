@@ -27,19 +27,67 @@ NOT y -> i";
     ]), calc(input))
 }
 
+enum Op {
+    Load(Signal, String),
+    And(Signal, Signal, String),
+    Or(Signal, Signal, String),
+    Lshift(Signal, i16, String),
+    Rshift(Signal, i16, String),
+    Not(Signal, String),
+}
+// 123 -> x
+// x AND y -> z
+// x OR y -> z
+// p LSHIFT 2 -> q
+// p RSHIFT 2 -> q
+// NOT e -> f
+impl FromStr for Op {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let parts = s.split(" -> ").collect::<Vec<_>>();
+        if parts.len() != 2 {
+            return Err(format!("signal not routed: {s}"));
+        }
+        let first_part = parts[0];
+        let target = parts[1];
+
+        
+    }
+}
+
+enum Signal {
+    Wire(String),
+    Constant(i16)
+}
+
+impl FromStr for Signal {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if s.trim().is_empty() {
+            return Err(format!("empty signal: {s}"));
+        }
+        match s.parse::<i16>() {
+            Ok(i) => Ok(Signal::Constant(i)),
+            Err(_) => Ok(Signal::Wire(s.to_string())),
+        }
+    }
+}
+
 #[test]
 fn p2_test() {
     assert_eq!(0, p2(&fs::read_to_string("d6.txt").unwrap()))
 }
 
-fn p1(s: &str) -> i32 {
-    *calc(s).get("a".to_string()).unwrap()
+fn p1(s: &str) -> u16 {
+    *calc(s).get("a").unwrap()
 }
 
-fn p2(s: &str) -> i32 {
+fn p2(s: &str) -> u16 {
     todo!()
 }
 
-fn calc(s: &str) -> HashMap<String, i32> {
+fn calc(s: &str) -> HashMap<String, u16> {
     todo!()
 }
