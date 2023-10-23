@@ -1,8 +1,8 @@
-use std::{fs, str::FromStr, collections::HashMap};
+use std::{fs, str::FromStr, collections::{HashMap, HashSet}};
 
 #[test]
 fn p1_test() {
-    assert_eq!(0, p1(&fs::read_to_string("d7.txt").unwrap()))
+    assert_eq!(46065, p1(&fs::read_to_string("d7.txt").unwrap()))
 }
 
 #[test]
@@ -106,47 +106,49 @@ impl Graph {
         let mut out = HashMap::new();
 
         for (k,o) in &self.0 {
-            if out.contains_key(k) {
-                continue;
-            }
-            let v = self.visit(k, o);
-            out.insert(k.to_string(), v);
+            self.visit(k, o, &mut out);
         }
 
         out
     }
 
-    fn visit(&self, k: &str, c: &Cmd) -> u16 {
-        match c {
+    fn visit(&self, k: &str, c: &Cmd, visited: &mut HashMap<String, u16>) -> u16 {
+        if let Some(v) = visited.get(k) {
+            return *v;
+        }
+        
+        let r = match c {
             Cmd::Load(v) => match v {
-                Signal::Wire(w) => self.visit(w, self.0.get(w).unwrap()),
-                Signal::Constant(c) => return *c,
+                Signal::Wire(w) => self.visit(w, self.0.get(w).unwrap(), visited),
+                Signal::Constant(c) => *c,
             },
             Cmd::Not(v) => match v {
-                Signal::Wire(w) => !self.visit(w, self.0.get(w).unwrap()),
-                Signal::Constant(c) => return *c,
+                Signal::Wire(w) => !self.visit(w, self.0.get(w).unwrap(), visited),
+                Signal::Constant(c) => *c,
             },
             Cmd::And(a, b) => match (a,b) {
-                (Signal::Wire(w1), Signal::Wire(w2)) => self.visit(w1, self.0.get(w1).unwrap()) & self.visit(w2, self.0.get(w2).unwrap()),
-                (Signal::Wire(w), Signal::Constant(c)) => self.visit(w, self.0.get(w).unwrap()) & c,
-                (Signal::Constant(c), Signal::Wire(w)) => c & self.visit(w, self.0.get(w).unwrap()),
+                (Signal::Wire(w1), Signal::Wire(w2)) => self.visit(w1, self.0.get(w1).unwrap(), visited) & self.visit(w2, self.0.get(w2).unwrap(), visited),
+                (Signal::Wire(w), Signal::Constant(c)) => self.visit(w, self.0.get(w).unwrap(), visited) & c,
+                (Signal::Constant(c), Signal::Wire(w)) => c & self.visit(w, self.0.get(w).unwrap(), visited),
                 (Signal::Constant(c1), Signal::Constant(c2)) => c1 & c2,
             },
             Cmd::Or(a,b) => match (a,b) {
-                (Signal::Wire(w1), Signal::Wire(w2)) => self.visit(w1, self.0.get(w1).unwrap()) | self.visit(w2, self.0.get(w2).unwrap()),
-                (Signal::Wire(w), Signal::Constant(c)) => self.visit(w, self.0.get(w).unwrap()) | c,
-                (Signal::Constant(c), Signal::Wire(w)) => c | self.visit(w, self.0.get(w).unwrap()),
+                (Signal::Wire(w1), Signal::Wire(w2)) => self.visit(w1, self.0.get(w1).unwrap(), visited) | self.visit(w2, self.0.get(w2).unwrap(), visited),
+                (Signal::Wire(w), Signal::Constant(c)) => self.visit(w, self.0.get(w).unwrap(), visited) | c,
+                (Signal::Constant(c), Signal::Wire(w)) => c | self.visit(w, self.0.get(w).unwrap(), visited),
                 (Signal::Constant(c1), Signal::Constant(c2)) => c1 | c2,
             },
             Cmd::Lshift(a,b) => match a {
-                Signal::Wire(w) => self.visit(w, self.0.get(w).unwrap()) << b,
+                Signal::Wire(w) => self.visit(w, self.0.get(w).unwrap(), visited) << b,
                 Signal::Constant(c) => c << b,
             },
             Cmd::Rshift(a,b) => match a {
-                Signal::Wire(w) => self.visit(w, self.0.get(w).unwrap()) >> b,
+                Signal::Wire(w) => self.visit(w, self.0.get(w).unwrap(), visited) >> b,
                 Signal::Constant(c) => c >> b,
-            },
-        }
+            }
+        };
+        visited.insert(k.to_string(), r);
+        r
     }
 
 }
