@@ -2,7 +2,12 @@ use std::{fs, str::FromStr, collections::HashMap};
 
 #[test]
 fn p1_test() {
-    assert_eq!(0, p1(&fs::read_to_string("d6.txt").unwrap()))
+    assert_eq!(0, p1(&fs::read_to_string("d7.txt").unwrap()))
+}
+
+#[test]
+fn p2_test() {
+    assert_eq!(0, p2(&fs::read_to_string("d7.txt").unwrap()))
 }
 
 #[test]
@@ -27,14 +32,17 @@ NOT y -> i";
     ]), calc(input))
 }
 
-enum Op {
-    Load(Signal, String),
-    And(Signal, Signal, String),
-    Or(Signal, Signal, String),
-    Lshift(Signal, i16, String),
-    Rshift(Signal, i16, String),
-    Not(Signal, String),
+enum Cmd {
+    Load(Signal),
+    And(Signal, Signal),
+    Or(Signal, Signal),
+    Lshift(Signal, u16),
+    Rshift(Signal, u16),
+    Not(Signal),
 }
+
+struct Op(Cmd, String);
+
 // 123 -> x
 // x AND y -> z
 // x OR y -> z
@@ -49,17 +57,16 @@ impl FromStr for Op {
         if parts.len() != 2 {
             return Err(format!("signal not routed: {s}"));
         }
-        let first_part = parts[0];
         let target = parts[1].to_string();
 
-        let cmd_parts = first_part.split_whitespace().collect::<Vec<_>>();
+        let cmd_parts = parts[0].split_whitespace().collect::<Vec<_>>();
         match cmd_parts[..] {
-            [v] => Ok(Self::Load(v.parse()?, target)),
-            [a, "AND", b] => Ok(Self::And(a.parse()?, b.parse()?, target)),
-            [a, "OR", b] => Ok(Self::Or(a.parse()?, b.parse()?, target)),
-            [a, "LSHIFT", b] => Ok(Self::Lshift(a.parse()?, b.parse().map_err(|_| format!("invalid shift val: {s}"))?, target)),
-            [a, "RSHIFT", b] => Ok(Self::Rshift(a.parse()?, b.parse().map_err(|_| format!("invalid shift val: {s}"))?, target)),
-            ["NOT", b] => Ok(Self::Not(b.parse()?, target)),
+            [v] => Ok(Op(Cmd::Load(v.parse()?), target)),
+            [a, "AND", b] => Ok(Op(Cmd::And(a.parse()?, b.parse()?), target)),
+            [a, "OR", b] => Ok(Op(Cmd::Or(a.parse()?, b.parse()?), target)),
+            [a, "LSHIFT", b] => Ok(Op(Cmd::Lshift(a.parse()?, b.parse().map_err(|_| format!("invalid shift val: {s}"))?), target)),
+            [a, "RSHIFT", b] => Ok(Op(Cmd::Rshift(a.parse()?, b.parse().map_err(|_| format!("invalid shift val: {s}"))?), target)),
+            ["NOT", b] => Ok(Op(Cmd::Not(b.parse()?), target)),
             _ => Err(format!("invalid cmd {s}")),
         }
     }
@@ -67,7 +74,7 @@ impl FromStr for Op {
 
 enum Signal {
     Wire(String),
-    Constant(i16)
+    Constant(u16)
 }
 
 impl FromStr for Signal {
@@ -77,16 +84,71 @@ impl FromStr for Signal {
         if s.trim().is_empty() {
             return Err(format!("empty signal: {s}"));
         }
-        match s.parse::<i16>() {
+        match s.parse::<u16>() {
             Ok(i) => Ok(Signal::Constant(i)),
             Err(_) => Ok(Signal::Wire(s.to_string())),
         }
     }
 }
 
-#[test]
-fn p2_test() {
-    assert_eq!(0, p2(&fs::read_to_string("d6.txt").unwrap()))
+struct Graph(HashMap<String, Cmd>);
+
+impl Graph {
+    fn new(ops: Vec<Op>) -> Self {
+        let mut g = HashMap::new();
+        for o in ops {
+            g.insert(o.1, o.0);
+        }
+        Self(g)
+    }
+
+    fn process(&self) -> HashMap<String, u16> {
+        let mut out = HashMap::new();
+
+        for (k,o) in &self.0 {
+            if out.contains_key(k) {
+                continue;
+            }
+            let v = self.visit(k, o);
+            out.insert(k.to_string(), v);
+        }
+
+        out
+    }
+
+    fn visit(&self, k: &str, c: &Cmd) -> u16 {
+        match c {
+            Cmd::Load(v) => match v {
+                Signal::Wire(w) => self.visit(w, self.0.get(w).unwrap()),
+                Signal::Constant(c) => return *c,
+            },
+            Cmd::Not(v) => match v {
+                Signal::Wire(w) => !self.visit(w, self.0.get(w).unwrap()),
+                Signal::Constant(c) => return *c,
+            },
+            Cmd::And(a, b) => match (a,b) {
+                (Signal::Wire(w1), Signal::Wire(w2)) => self.visit(w1, self.0.get(w1).unwrap()) & self.visit(w2, self.0.get(w2).unwrap()),
+                (Signal::Wire(w), Signal::Constant(c)) => self.visit(w, self.0.get(w).unwrap()) & c,
+                (Signal::Constant(c), Signal::Wire(w)) => c & self.visit(w, self.0.get(w).unwrap()),
+                (Signal::Constant(c1), Signal::Constant(c2)) => c1 & c2,
+            },
+            Cmd::Or(a,b) => match (a,b) {
+                (Signal::Wire(w1), Signal::Wire(w2)) => self.visit(w1, self.0.get(w1).unwrap()) | self.visit(w2, self.0.get(w2).unwrap()),
+                (Signal::Wire(w), Signal::Constant(c)) => self.visit(w, self.0.get(w).unwrap()) | c,
+                (Signal::Constant(c), Signal::Wire(w)) => c | self.visit(w, self.0.get(w).unwrap()),
+                (Signal::Constant(c1), Signal::Constant(c2)) => c1 | c2,
+            },
+            Cmd::Lshift(a,b) => match a {
+                Signal::Wire(w) => self.visit(w, self.0.get(w).unwrap()) << b,
+                Signal::Constant(c) => c << b,
+            },
+            Cmd::Rshift(a,b) => match a {
+                Signal::Wire(w) => self.visit(w, self.0.get(w).unwrap()) >> b,
+                Signal::Constant(c) => c >> b,
+            },
+        }
+    }
+
 }
 
 fn p1(s: &str) -> u16 {
@@ -98,5 +160,8 @@ fn p2(s: &str) -> u16 {
 }
 
 fn calc(s: &str) -> HashMap<String, u16> {
-    todo!()
+    let ops = s.lines().map(|v| v.parse::<Op>()).collect::<Result<Vec<_>, _>>().expect("parsing error");
+    let mut g = Graph::new(ops);
+
+    g.process()
 }
