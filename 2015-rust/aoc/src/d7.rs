@@ -7,7 +7,7 @@ fn p1_test() {
 
 #[test]
 fn p2_test() {
-    assert_eq!(0, p2(&fs::read_to_string("d7.txt").unwrap()))
+    assert_eq!(14134, p2(&fs::read_to_string("d7.txt").unwrap()))
 }
 
 #[test]
