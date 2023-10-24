@@ -13,6 +13,11 @@ Dublin to Belfast = 141";
     ]));
 }
 
+#[test]
+fn p1_ex() {
+    todo!()
+}
+
 struct Graph(HashMap<String, HashMap<String, usize>>);
 
 fn parse(s: &str) -> Result<Graph, String> {
