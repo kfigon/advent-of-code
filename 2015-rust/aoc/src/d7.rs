@@ -1,4 +1,4 @@
-use std::{fs, str::FromStr, collections::{HashMap, HashSet}};
+use std::{fs, str::FromStr, collections::{HashMap}};
 
 #[test]
 fn p1_test() {
@@ -32,6 +32,7 @@ NOT y -> i";
     ]), calc(input))
 }
 
+#[derive(Clone)]
 enum Cmd {
     Load(Signal),
     And(Signal, Signal),
@@ -41,6 +42,7 @@ enum Cmd {
     Not(Signal),
 }
 
+#[derive(Clone)]
 struct Op(Cmd, String);
 
 // 123 -> x
@@ -72,6 +74,7 @@ impl FromStr for Op {
     }
 }
 
+#[derive(Clone)]
 enum Signal {
     Wire(String),
     Constant(u16)
@@ -150,7 +153,6 @@ impl Graph {
         visited.insert(k.to_string(), r);
         r
     }
-
 }
 
 fn p1(s: &str) -> u16 {
@@ -158,8 +160,25 @@ fn p1(s: &str) -> u16 {
 }
 
 fn p2(s: &str) -> u16 {
-    todo!()
+    let mut ops = s.lines().map(|v| v.parse::<Op>()).collect::<Result<Vec<_>, _>>().expect("parsing error");
+    let mut g = Graph::new(ops.clone());
+
+    let a = g.process().get("a").unwrap().clone();
+
+    for o in &mut ops {
+        if o.1 == "b" {
+            o.0 = Cmd::Load(Signal::Constant(a));
+            break;
+        }
+    }
+    g = Graph::new(ops);
+
+    *g.process().get("a").unwrap()
 }
+// Now, take the signal you got on wire a, 
+// override wire b to that signal, and reset the other wires (including wire a). 
+// What new signal is ultimately provided to wire a?
+
 
 fn calc(s: &str) -> HashMap<String, u16> {
     let ops = s.lines().map(|v| v.parse::<Op>()).collect::<Result<Vec<_>, _>>().expect("parsing error");
