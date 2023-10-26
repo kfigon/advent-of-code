@@ -1,12 +1,12 @@
-use std::{collections::HashMap, fmt::format};
+use std::{collections::{HashMap, HashSet}};
 
-#[test]
-fn parse_test() {
-    let d = "London to Dublin = 464
+const example: &'static str ="London to Dublin = 464
 London to Belfast = 518
 Dublin to Belfast = 141";
 
-    let g = parse(d).unwrap();
+#[test]
+fn parse_test() {
+    let g = parse(example).unwrap();
     assert_eq!(g.0.get("London").unwrap(), &HashMap::from_iter([
         ("Dublin".to_string(), 464),
         ("Belfast".to_string(), 518),
@@ -15,7 +15,7 @@ Dublin to Belfast = 141";
 
 #[test]
 fn p1_ex() {
-    todo!()
+    assert_eq!(605, p1(example));
 }
 
 struct Graph(HashMap<String, HashMap<String, usize>>);
@@ -41,4 +41,50 @@ fn parse(s: &str) -> Result<Graph, String> {
     }
 
     Ok(Graph(out))
+}
+
+fn permutate(vals: &[&str]) -> Vec<Vec<String>> {
+    let mut out = vec![];
+    if vals.len() == 0 {
+        return out;
+    }
+
+    for (i, &current) in vals.iter().enumerate() {
+        let rest = if i == 0 {
+            vals[1..].to_vec()
+        } else{
+            let mut out = vals[..i].to_vec();
+            out.append(&mut vals[i+1..].to_vec());
+            out
+        };
+        
+        let mut result = permutate(&rest);
+        if result.is_empty() {
+            out.push(vec![current.to_string()]);
+        } else {
+            result.iter_mut().for_each(|c| c.push(current.to_string()));
+            out.append(&mut result);
+        }
+    }
+
+    out
+}
+
+fn p1(s: &str) -> usize {
+    let g = parse(s).unwrap();
+
+    let cities = g.0.keys().map(|v| v.as_str()).collect::<HashSet<_>>();
+    let cities = cities.into_iter().collect::<Vec<_>>();
+    let permutations = permutate(&cities);
+    let traverse = |v: &Vec<String>| -> usize {
+        let mut out = 0;
+
+        for city in v {
+            todo!()
+        }
+
+        out
+    };
+
+    permutations.iter().map(traverse).min().unwrap()
 }
