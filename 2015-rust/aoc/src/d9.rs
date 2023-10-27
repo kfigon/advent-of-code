@@ -1,4 +1,4 @@
-use std::{collections::{HashMap, HashSet}};
+use std::{collections::{HashMap, HashSet}, fs};
 
 const example: &'static str ="London to Dublin = 464
 London to Belfast = 518
@@ -16,6 +16,16 @@ fn parse_test() {
 #[test]
 fn p1_ex() {
     assert_eq!(605, p1(example));
+}
+
+#[test]
+fn p1_test() {
+    assert_eq!(141, p1(&fs::read_to_string("d9.txt").unwrap()));
+}
+
+#[test]
+fn p2_test() {
+    assert_eq!(736, p2(&fs::read_to_string("d9.txt").unwrap()));
 }
 
 struct Graph(HashMap<String, HashMap<String, usize>>);
@@ -71,20 +81,27 @@ fn permutate(vals: &[&str]) -> Vec<Vec<String>> {
 }
 
 fn p1(s: &str) -> usize {
+    roads(s).min().unwrap()
+}
+
+fn p2(s: &str) -> usize {
+    roads(s).max().unwrap()
+}
+
+fn roads(s: &str) -> impl Iterator<Item = usize> {
     let g = parse(s).unwrap();
 
     let cities = g.0.keys().map(|v| v.as_str()).collect::<HashSet<_>>();
     let cities = cities.into_iter().collect::<Vec<_>>();
     let permutations = permutate(&cities);
-    let traverse = |v: &Vec<String>| -> usize {
+    let traverse = move |v: Vec<String>| -> usize {
         let mut out = 0;
 
-        for city in v {
-            todo!()
+        for cities in v.windows(2) {
+            out += g.0.get(&cities[0]).unwrap().get(&cities[1]).unwrap();
         }
 
         out
     };
-
-    permutations.iter().map(traverse).min().unwrap()
+    permutations.into_iter().map(traverse)
 }
