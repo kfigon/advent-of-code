@@ -40,6 +40,7 @@ fn is_nice_p2(s: &str) -> bool {
 
     let mut pair_twice = false;
     for i in 0..chars.len()-1 {
+        // todo: hashmap with index to detect non overlap existing pairs
         for j in i+2..chars.len()-1 {
             if chars[i] == chars[j] && chars[i+1] == chars[j+1] {
                 pair_twice = true;
