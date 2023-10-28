@@ -12,6 +12,11 @@ fn rules_test() {
     assert!(valid("ghjaabcc"));
 }
 
+#[test]
+fn p1_test() {
+    todo!()
+}
+
 // Passwords must include one increasing straight of at least three letters, like abc, bcd, cde, and so on, up to xyz. They cannot skip letters; abd doesn't count.
 // Passwords may not contain the letters i, o, or l, as these letters can be mistaken for other characters and are therefore confusing.
 // Passwords must contain at least two different, non-overlapping pairs of letters, like aa, bb, or zz.
@@ -23,31 +28,29 @@ fn rules_test() {
 fn valid(s: &str) -> bool {
     let chars = s.chars().collect::<Vec<_>>();
     let invalid_letter = |c: char| -> bool { c.is_uppercase() || !c.is_ascii_alphabetic() || c == 'i' || c == 'o' || c == 'l' };
-
-    if chars.len() != 8 {
-        return false;
-    } else if chars.iter().any(|c| invalid_letter(*c)) {
-        return false;
-    } else if !chars.windows(3).any(|c| increasing(c)) {
-        return false;
-    }
-
-    let mut substrs: Option<&str> = None;
-    for i in 0..chars.len()-1 {
-        let x = &s[i..i+2];
-        if x.as_bytes()[0] != x.as_bytes()[1] {
-            continue;
-        }
-
-        if substrs.is_none() {
-            substrs = Some(x);
-        } else if let Some(other) = substrs {
-            if other != x {
-                return true;
+    let has_pairs = || -> bool {
+        let mut substrs: Option<&str> = None;
+        for i in 0..chars.len()-1 {
+            let x = &s[i..i+2];
+            if x.as_bytes()[0] != x.as_bytes()[1] {
+                continue;
+            }
+    
+            if substrs.is_none() {
+                substrs = Some(x);
+            } else if let Some(other) = substrs {
+                if other != x {
+                    return true;
+                }
             }
         }
-    }
-    false
+        false
+    };
+
+    chars.len() == 8 &&
+    chars.iter().all(|c| !invalid_letter(*c)) &&
+    chars.windows(3).any(|c| increasing(c)) &&
+    has_pairs()
 }
 
 fn increasing(v: &[char]) -> bool {
