@@ -12,4 +12,5 @@ mod d11;
 
 fn main() {
     println!("Hello, world!");
+    d11::p1("abcdefgh");
 }
