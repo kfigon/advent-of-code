@@ -7,6 +7,7 @@ fn rules_test() {
     assert!(!valid(&adj("ghijklmn")));
     
     assert!(!valid(&adj("abcdefgh")));
+    assert!(!valid(&adj("vzbyyzaa")));
     assert!(valid(&adj("abcdffaa")));
     assert!(valid(&adj("ghjaabcc")));
 }
@@ -18,17 +19,10 @@ fn p1_ex() {
 }
 
 #[test]
-fn p1_test() {
+fn p1_p2_test() {
     assert_eq!(p1("vzbxkghb"), "vzbxxyzz".to_string());
+    assert_eq!(p1("vzbxxyzz"), "vzcaabcc".to_string());
 }
-
-// Passwords must include one increasing straight of at least three letters, like abc, bcd, cde, and so on, up to xyz. They cannot skip letters; abd doesn't count.
-// Passwords may not contain the letters i, o, or l, as these letters can be mistaken for other characters and are therefore confusing.
-// Passwords must contain at least two different, non-overlapping pairs of letters, like aa, bb, or zz.
-
-// hijklmmn meets the first requirement (because it contains the straight hij) but fails the second requirement requirement (because it contains i and l).
-// abbceffg meets the third requirement (because it repeats bb and ff) but fails the first requirement.
-// abbcegjk fails the third requirement, because it only has one double letter (bb).
 
 fn valid(chars: &Vec<char>) -> bool {
     let invalid_letter = |c: char| -> bool { c.is_uppercase() || !c.is_ascii_alphabetic() || c == 'i' || c == 'o' || c == 'l' };
@@ -54,7 +48,7 @@ fn valid(chars: &Vec<char>) -> bool {
     let increasing = |v: &[char]| -> bool {
         next_char(v[0] as u8) == v[1] as u8 && 
         next_char(v[1] as u8) == v[2] as u8 && 
-        v[2] as u8 <= b'z'
+        v[2] as u8 <= b'z' && v[0] < v[1] && v[1] < v[2]
     };
 
     chars.len() == 8 &&
@@ -90,11 +84,12 @@ fn next_pass(mut chars: Vec<char>) -> Vec<char> {
     chars
 }
 
-pub fn p1(s: &str) -> String {
+fn p1(s: &str) -> String {
     let mut chars = s.chars().collect::<Vec<_>>();
     chars = next_pass(chars);
 
     while !valid(&chars) {
+        // println!("{chars:?}");
         chars = next_pass(chars);
     }
 
