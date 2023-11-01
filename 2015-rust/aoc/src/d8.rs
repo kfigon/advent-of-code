@@ -40,7 +40,7 @@ fn p2_test () {
 }
 
 fn parse_line(s: &str) -> Vec<char> {
-    let mut chars = s.chars().collect::<Vec<_>>();
+    let chars = s.chars().collect::<Vec<_>>();
     let mut chars = chars[1..chars.len()-1].iter();
 
     let mut out = vec![];

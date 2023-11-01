@@ -12,10 +12,10 @@ fn p2_test() {
 
 #[derive(Debug, PartialEq)]
 struct Command {
-    startX: i32,
-    startY: i32,
-    endX: i32,
-    endY: i32,
+    start_x: i32,
+    start_y: i32,
+    end_x: i32,
+    end_y: i32,
     i: Instruction,
 }
 
@@ -51,11 +51,11 @@ impl FromStr for Command {
         let first = parts[0];
         
         let instr = if first.starts_with("turn on ") {
-            first.strip_prefix("turn on ").and_then(parse_pair).map(|v| Command{ startX: v.0, startY: v.1, endX: second_pair.0, endY: second_pair.1, i: Instruction::On })
+            first.strip_prefix("turn on ").and_then(parse_pair).map(|v| Command{ start_x: v.0, start_y: v.1, end_x: second_pair.0, end_y: second_pair.1, i: Instruction::On })
         } else if first.starts_with("toggle ") {
-            first.strip_prefix("toggle ").and_then(parse_pair).map(|v| Command { startX: v.0, startY: v.1, endX: second_pair.0, endY: second_pair.1, i: Instruction::Toggle })
+            first.strip_prefix("toggle ").and_then(parse_pair).map(|v| Command { start_x: v.0, start_y: v.1, end_x: second_pair.0, end_y: second_pair.1, i: Instruction::Toggle })
         } else if first.starts_with("turn off ") {
-            first.strip_prefix("turn off ").and_then(parse_pair).map(|v| Command { startX: v.0, startY: v.1, endX: second_pair.0, endY: second_pair.1, i: Instruction::Off })
+            first.strip_prefix("turn off ").and_then(parse_pair).map(|v| Command { start_x: v.0, start_y: v.1, end_x: second_pair.0, end_y: second_pair.1, i: Instruction::Off })
         } else {
             None
         };
@@ -74,8 +74,8 @@ impl Lights {
     }
 
     fn process_p1(&mut self, cmd: &Command) {
-        for r in cmd.startY..=cmd.endY {
-            for c in cmd.startX..=cmd.endX {
+        for r in cmd.start_y..=cmd.end_y {
+            for c in cmd.start_x..=cmd.end_x {
                 match cmd.i {
                     Instruction::On => self.data[r as usize][c as usize] = 1,
                     Instruction::Off => self.data[r as usize][c as usize] = 0,
@@ -90,8 +90,8 @@ impl Lights {
     }
 
     fn process_p2(&mut self, cmd: &Command) {
-        for r in cmd.startY..=cmd.endY {
-            for c in cmd.startX..=cmd.endX {
+        for r in cmd.start_y..=cmd.end_y {
+            for c in cmd.start_x..=cmd.end_x {
                 match cmd.i {
                     Instruction::On => self.data[r as usize][c as usize] += 1,
                     Instruction::Off => if self.data[r as usize][c as usize] > 0 {

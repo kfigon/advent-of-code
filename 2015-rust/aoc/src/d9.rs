@@ -1,12 +1,12 @@
 use std::{collections::{HashMap, HashSet}, fs};
 
-const example: &'static str ="London to Dublin = 464
+const EXAMPLE: &'static str ="London to Dublin = 464
 London to Belfast = 518
 Dublin to Belfast = 141";
 
 #[test]
 fn parse_test() {
-    let g = parse(example).unwrap();
+    let g = parse(EXAMPLE).unwrap();
     assert_eq!(g.0.get("London").unwrap(), &HashMap::from_iter([
         ("Dublin".to_string(), 464),
         ("Belfast".to_string(), 518),
@@ -15,7 +15,7 @@ fn parse_test() {
 
 #[test]
 fn p1_ex() {
-    assert_eq!(605, p1(example));
+    assert_eq!(605, p1(EXAMPLE));
 }
 
 #[test]

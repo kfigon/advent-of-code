@@ -182,7 +182,7 @@ fn p2(s: &str) -> u16 {
 
 fn calc(s: &str) -> HashMap<String, u16> {
     let ops = s.lines().map(|v| v.parse::<Op>()).collect::<Result<Vec<_>, _>>().expect("parsing error");
-    let mut g = Graph::new(ops);
+    let g = Graph::new(ops);
 
     g.process()
 }

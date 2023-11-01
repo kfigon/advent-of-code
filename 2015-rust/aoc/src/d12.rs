@@ -1,6 +1,6 @@
 use std::fs;
 
-use serde_json::{Value, Map};
+use serde_json::{Value};
 
 #[test]
 fn p1_ex_1() {
