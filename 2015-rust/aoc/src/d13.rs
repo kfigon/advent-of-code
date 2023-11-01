@@ -28,9 +28,7 @@ impl<'a> TryFrom<&'a str> for Entry<'a> {
         static RE: Lazy<Regex> = Lazy::new(|| Regex::new(r"(\w+) would (\w+) (\d+) .* to (\w+)").unwrap());
         
         let res = RE.captures(s).ok_or("invalid input, parts not found")?;
-        if res.len() != 5 {
-            return Err("invalid input, parts not found");
-        } 
+
         match (
             res.get(1).map(|v| v.as_str()), 
             res.get(2).map(|v| v.as_str()), 
@@ -57,5 +55,8 @@ fn parse_test() {
     assert_eq!(e, Err("invalid action, expect 'lose' or 'gain'"));
 
     let e: Result<Entry, _> = "Alice would foo 12a happiness units by sitting next to Carol.".try_into();
+    assert_eq!(e, Err("invalid input, parts not found"));
+
+    let e: Result<Entry, _> = "would foo 12 happiness units by sitting next to .".try_into();
     assert_eq!(e, Err("invalid input, parts not found"));
 }
