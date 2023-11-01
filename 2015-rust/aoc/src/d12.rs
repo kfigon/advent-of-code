@@ -53,44 +53,35 @@ fn p2_test() {
 }
 
 fn p1(s: &str) -> i32 {
-    let jval: Value = serde_json::from_str(s).unwrap();
-    sum1(jval)
+    sum(serde_json::from_str(s).unwrap(), false)
 }
 
 fn p2(s: &str) -> i32 {
-    let jval: Value = serde_json::from_str(s).unwrap();
-    sum2(jval)
+    sum(serde_json::from_str(s).unwrap(), true)
 }
 
-fn sum1(v: Value) -> i32 {
+fn sum(v: Value, filter: bool) -> i32 {
     match v {
         Value::Null => 0,
         Value::Bool(_) => 0,
         Value::Number(n) => n.as_i64().unwrap() as i32,
         Value::String(_) => 0,
-        Value::Array(a) => a.into_iter().map(sum1).sum(),
-        Value::Object(o) => o.into_iter().map(|v| sum1(v.1)).sum(),
-    }
-}
-
-fn sum2(v: Value) -> i32 {
-    match v {
-        Value::Null => 0,
-        Value::Bool(_) => 0,
-        Value::Number(n) => n.as_i64().unwrap() as i32,
-        Value::String(_) => 0,
-        Value::Array(a) => a.into_iter().map(sum2).sum(),
+        Value::Array(a) => a.into_iter().map(|x| sum(x, filter)).sum(),
         Value::Object(o) => {
-            let mut sum = 0;
-            for el in o {
-                match &el.1 {
-                    Value::String(s) => if *s == "red" {
-                        return 0;
-                    },
-                    _ => sum += sum2(el.1),
+            if filter {
+                let mut sums = 0;
+                for el in o {
+                    match &el.1 {
+                        Value::String(s) => if *s == "red" {
+                            return 0;
+                        },
+                        _ => sums += sum(el.1, filter),
+                    }
                 }
+                sums
+            } else {
+                o.into_iter().map(|v| sum(v.1, filter)).sum()
             }
-            sum
-        },
+        }
     }
 }
