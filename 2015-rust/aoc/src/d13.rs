@@ -36,11 +36,11 @@ impl<'a> TryFrom<&'a str> for Entry<'a> {
             res.get(2).map(|v| v.as_str()), 
             res.get(3).map(|v| v.as_str()).map(|v| v.parse::<i32>()), 
             res.get(4).map(|v| v.as_str())) {
-            (Some(who), Some("lose"), Some(Ok(change)), Some(target)) => Ok(Entry { who: who, change: -change, target: target }),
-            (Some(who), Some("gain"), Some(Ok(change)), Some(target)) => Ok(Entry { who: who, change: change, target: target }),
-            (Some(_), Some(_), Some(Err(_)), Some(_)) => Err("invalid number found"),
-            (Some(_), Some(_unknown), Some(_), Some(_)) => Err("invalid action, expect 'lose' or 'gain'"),
-            _ => Err("invalid input, elements not found"),
+                (Some(who), Some("lose"), Some(Ok(change)), Some(target)) => Ok(Entry { who: who, change: -change, target: target }),
+                (Some(who), Some("gain"), Some(Ok(change)), Some(target)) => Ok(Entry { who: who, change: change, target: target }),
+                (Some(_), Some(_), Some(Err(_)), Some(_)) => Err("invalid number found"),
+                (Some(_), Some(_unknown), Some(_), Some(_)) => Err("invalid action, expect 'lose' or 'gain'"),
+                _ => Err("invalid input, elements not found"),
         }
     }
 }
