@@ -1,3 +1,5 @@
+use std::{collections::HashMap, vec, fs};
+
 use once_cell::sync::Lazy;
 use regex::Regex;
 
@@ -43,6 +45,14 @@ impl<'a> TryFrom<&'a str> for Entry<'a> {
     }
 }
 
+fn parse(s: &str) -> Graph {
+    let es = s.lines()
+        .map(|l| l.try_into())
+        .collect::<Result<Vec<Entry>, _>>()
+        .unwrap();
+    Graph::new(es)
+}
+
 #[test]
 fn parse_test() {
     let e: Result<Entry, _> = "Alice would gain 54 happiness units by sitting next to Bob.".try_into();
@@ -59,4 +69,84 @@ fn parse_test() {
 
     let e: Result<Entry, _> = "would foo 12 happiness units by sitting next to .".try_into();
     assert_eq!(e, Err("invalid input, parts not found"));
+}
+
+#[test]
+fn p1_ex() {
+    let g = parse(EXAMPLE);
+    assert_eq!(330, p1(g));
+}
+
+#[test]
+fn p1_test() {
+    let g = parse(&fs::read_to_string("d13.txt").unwrap());
+    assert_eq!(709, p1(g));
+}
+
+struct Graph(HashMap<String, HashMap<String, i32>>);
+
+impl Graph {
+    fn new(vs: Vec<Entry>) -> Self {
+        let mut g: HashMap<String, HashMap<String, i32>> = HashMap::new();
+        
+        for e in vs {
+            let node = g.entry(e.who.to_string()).or_default();
+            node.insert(e.target.to_string(), e.change);
+        }
+
+        Self(g)
+    }
+
+    fn participants(&self) -> Vec<&str> {
+        self.0.keys().map(String::as_str).collect()
+    }
+}
+
+fn permutate(names: &[&str]) -> Vec<Vec<String>> {
+    let mut out = vec![];
+    if names.len() == 0 {
+        return out;
+    }
+
+    for (i, &v) in names.iter().enumerate() {
+        let rest = if i == 0 {
+            names[1..].to_vec()
+        } else {
+            let mut left = names[..i].to_vec();
+            let mut right = names[i+1..].to_vec();
+            left.append(&mut right);
+            left
+        };
+
+        let mut result = permutate(&rest);
+        if result.len() == 0 {
+            out.push(vec![v.to_string()]);
+        } else {
+            result.iter_mut().for_each(|l| l.push(v.to_string()));
+            out.append(&mut result);
+        }
+    }
+
+    out
+}
+
+fn p1(g: Graph) -> i32 {
+    let mut permutations = permutate(&g.participants());
+    permutations.iter_mut().for_each(|l| l.push(l[0].to_string()));
+    
+    let mut sum = 0;
+    for perm in permutations {
+        let mut subsum = 0;
+        for person in perm.windows(2) {
+            let x = g.0.get(&person[0]).unwrap().get(&person[1]).unwrap();
+            let y = g.0.get(&person[1]).unwrap().get(&person[0]).unwrap();
+
+            subsum = subsum + *y + *x;
+        }
+
+        if subsum > sum {
+            sum = subsum;
+        }
+    }
+    sum
 }
