@@ -83,6 +83,14 @@ fn p1_test() {
     assert_eq!(709, p1(g));
 }
 
+#[test]
+#[ignore = "long time"]
+fn p2_test() {
+    let mut g = parse(&fs::read_to_string("d13.txt").unwrap());
+    g.add_yourself();
+    assert_eq!(668, p1(g));
+}
+
 struct Graph(HashMap<String, HashMap<String, i32>>);
 
 impl Graph {
@@ -99,6 +107,16 @@ impl Graph {
 
     fn participants(&self) -> Vec<&str> {
         self.0.keys().map(String::as_str).collect()
+    }
+
+    fn add_yourself(&mut self) {
+        self.0.insert("myself".to_string(), HashMap::from_iter(
+            self.participants().iter().map(|p| (p.to_string(), 0))
+        ));
+
+        for (_, val) in &mut self.0 {
+            val.insert("myself".to_string(), 0);
+        }
     }
 }
 
