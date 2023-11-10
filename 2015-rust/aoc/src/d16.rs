@@ -90,7 +90,7 @@ fn solve(s: &str, candidate_fn: impl Fn(&HashMap<&str, i32>, &HashMap<&str, i32>
     let model = input();
 
     let candidate = data.iter()
-        .find(|(id, d)| candidate_fn(d, &model));
+        .find(|(_, d)| candidate_fn(d, &model));
 
     candidate.unwrap().0
 }
