@@ -1,150 +1,73 @@
-use std::{collections::HashMap, fs};
-
-const EXAMPLE: &'static str = ".#.#.#
-...##.
-#....#
-..#...
-#.#..#
-####..";
+use std::{num::ParseIntError, fs};
 
 #[test]
 fn p1_ex() {
-    assert_eq!(4, p1(EXAMPLE, 4));
-}
+    let limit = 25;
+    let example = "20
+15
+10
+5
+5";
 
-#[test]
-fn p2_ex() {
-    assert_eq!(17, p2(EXAMPLE, 5));
+    assert_eq!(4, p1(example, limit));
 }
 
 #[test]
 fn p1_test() {
-    assert_eq!(821, p1(&fs::read_to_string("d18.txt").unwrap(), 100));
+    assert_eq!(654, p1(&fs::read_to_string("d17.txt").unwrap(), 150));
 }
 
 #[test]
 fn p2_test() {
-    assert_eq!(886, p2(&fs::read_to_string("d18.txt").unwrap(), 100));
+    assert_eq!(57, p2(&fs::read_to_string("d17.txt").unwrap(), 150));
 }
 
-struct Grid<T: ElementAccessor>{
-    els: Vec<Vec<u8>>,
-    accessor: T,
+fn parse(s: &str) -> Result<Vec<i32>, ParseIntError> {
+    s.lines().map(|v| v.parse::<i32>()).collect()
 }
 
-fn parse<T: ElementAccessor>(value: &str, accessor: T) -> Grid<T> {
-    Grid { 
-        els: value.lines()
-            .map(|v| v.as_bytes().to_vec())
-            .collect(), 
-        accessor: accessor 
-    }
+// brute force :(
+fn p1(s: &str, limit: i32) -> usize {
+    calc_combinations(s, limit).count()
 }
 
+fn calc_combinations(s: &str, limit: i32) -> impl Iterator<Item = Vec<i32>> {
+    let d = parse(s).unwrap();
 
-impl<T: ElementAccessor> Grid<T> {
-    // A light which is on stays on when 2 or 3 neighbors are on, and turns off otherwise.
-    // A light which is off turns on if exactly 3 neighbors are on, and stays off otherwise.
-    fn next(&mut self) {
-        let mut changes: HashMap<(usize, usize), u8> = HashMap::new();
-        for (r, rows) in self.els.iter().enumerate() {
-            for (c, _) in rows.iter().enumerate() {
-                let nei = self.lit_neighbors(r, c);
-                let el = self.get_el(Some(r), Some(c));
+    let combs = combinate(&d);
 
-                match(el, nei) {
-                    (Some(b'#'), n) if n != 2 && n != 3 => changes.insert((r,c), b'.'),
-                    (Some(b'.'), n) if n == 3 => changes.insert((r,c), b'#'),
-                    _ => None,
-                };
-            }
-        }
-
-        for (key, el) in changes {
-            self.accessor.set_el(&mut self.els, key.0, key.1, el);
-        }
-    }
-
-    fn get_el(&self, r: Option<usize>, c: Option<usize>) -> Option<u8> {
-        self.accessor.get_el(&self.els, r,c)
-    }
-
-    fn lit_neighbors(&self, r: usize, c: usize) -> usize {
-        let nei = [
-            self.get_el(r.checked_sub(1), c.checked_sub(1)), self.get_el(r.checked_sub(1), Some(c)), self.get_el(r.checked_sub(1), c.checked_add(1)), 
-            self.get_el(Some(r), c.checked_sub(1)),                                                       self.get_el(Some(r), c.checked_add(1)), 
-            self.get_el(r.checked_add(1), c.checked_sub(1)), self.get_el(r.checked_add(1), Some(c)), self.get_el(r.checked_add(1), c.checked_add(1)), 
-        ];
-
-        nei.iter().flatten().filter(|&&v| v == b'#').count()
-    }
-
-    fn count_on(&self) -> usize {
-        self.els.iter()
-            .flat_map(|v| v)
-            .filter(|&&v| v == b'#')
-            .count()
-    }
+    combs.into_iter()
+        .filter(move |v| v.iter().sum::<i32>() == limit)
 }
 
-trait ElementAccessor {
-    fn get_el(&self, v: &Vec<Vec<u8>>, r: Option<usize>, c: Option<usize>) -> Option<u8>;
-    fn set_el(&self, v: &mut Vec<Vec<u8>>, r: usize, c: usize, value: u8);
-}
-
-struct DefaultAccesor;
-impl ElementAccessor for DefaultAccesor {
-    fn get_el(&self, v: &Vec<Vec<u8>>, r: Option<usize>, c: Option<usize>) -> Option<u8> {
-        match (r, c) {
-            (Some(rx), Some(cx)) => v.get(rx).and_then(|cols| cols.get(cx).cloned()),
-            _ => None,
-        }
+// order does not matter (in permutations it does)
+fn combinate(d: &[i32]) -> Vec<Vec<i32>> {
+    if d.is_empty() {
+        return vec![vec![]];
     }
 
-    fn set_el(&self, v: &mut Vec<Vec<u8>>, r: usize, c: usize, value: u8) {
-        v[r][c] = value;
-    }
-}
-struct StuckAccessor;
-impl ElementAccessor for StuckAccessor {
-    fn get_el(&self, v: &Vec<Vec<u8>>, r: Option<usize>, c: Option<usize>) -> Option<u8> {
-        let num_rows = v.len()-1;
-        let num_cols = v[0].len()-1;
-        match (r, c) {
-            (Some(0), Some(0)) => Some(b'#'),
-            (Some(0), Some(cols)) if cols == num_cols => Some(b'#'),
-            (Some(rows), Some(0)) if rows == num_rows => Some(b'#'),
-            (Some(rows), Some(cols)) if rows == num_rows && cols == num_cols => Some(b'#'),
-            (Some(rx), Some(cx)) => v.get(rx).and_then(|cols| cols.get(cx).cloned()),
-            _ => None,
-        }
+    let first = *d.first().unwrap();
+    let rest = &d[1..];
+
+    let combs_without_first = combinate(rest);
+    
+    let mut out = vec![];
+    
+    // take elements without the first and then with
+    for c in &combs_without_first {
+        out.push(c.clone());
     }
 
-    fn set_el(&self, v: &mut Vec<Vec<u8>>, r: usize, c: usize, value: u8) {
-        let num_rows = v.len()-1;
-        let num_cols = v[0].len()-1;
-
-        v[r][c] = match (r,c) {
-            (0, 0) => b'#',
-            (0, cols) if cols == num_cols => b'#',
-            (rows, 0) if rows == num_rows => b'#',
-            (rows, cols) if rows == num_rows && cols == num_cols => b'#',
-            _ => value,
-        };
+    for mut c in combs_without_first {
+        c.push(first);
+        out.push(c);
     }
+
+    out
 }
 
-fn p1(s: &str, steps: usize) -> usize {
-    solve(parse(s, DefaultAccesor{}), steps)
-}
-
-fn p2(s: &str, steps: usize) -> usize {
-    solve(parse(s, StuckAccessor{}), steps)
-}
-
-fn solve<T: ElementAccessor>(mut g: Grid<T>, steps: usize) -> usize {
-    for _ in 0..steps {
-        g.next();
-    }
-    g.count_on()
+fn p2(s: &str, limit: i32) -> usize {
+    let valid_combinations = calc_combinations(s, limit).collect::<Vec<Vec<i32>>>();
+    let min_len = valid_combinations.iter().map(|v| v.len()).min().unwrap();
+    valid_combinations.iter().filter(|v| v.len() == min_len).count()
 }
