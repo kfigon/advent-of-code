@@ -70,10 +70,14 @@ impl<T: ElementAccessor> Grid<T> {
     }
 
     fn lit_neighbors(&self, r: usize, c: usize) -> usize {
+        let top = r.checked_sub(1);
+        let down = r.checked_add(1);
+        let left = c.checked_sub(1);
+        let right = c.checked_add(1);
         let nei = [
-            self.get_el(r.checked_sub(1), c.checked_sub(1)), self.get_el(r.checked_sub(1), Some(c)), self.get_el(r.checked_sub(1), c.checked_add(1)), 
-            self.get_el(Some(r), c.checked_sub(1)),                                                       self.get_el(Some(r), c.checked_add(1)), 
-            self.get_el(r.checked_add(1), c.checked_sub(1)), self.get_el(r.checked_add(1), Some(c)), self.get_el(r.checked_add(1), c.checked_add(1)), 
+            self.get_el(top, left), self.get_el(top, Some(c)), self.get_el(top, right), 
+            self.get_el(Some(r), left),                             self.get_el(Some(r), right), 
+            self.get_el(down, left), self.get_el(down, Some(c)), self.get_el(down, right), 
         ];
 
         nei.iter().flatten().filter(|&&v| v == b'#').count()
