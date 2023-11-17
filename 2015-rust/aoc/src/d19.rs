@@ -63,7 +63,8 @@ fn parse(s: &str) -> Result<(HashMap<&str, &str>, &str), &'static str> {
 
     let mappings = mappings.lines()
         .map(|line| line.split_once(" => "))
-        .collect::<Option<HashMap<&str,&str>>>().ok_or("invalid mapping found")?;
+        .collect::<Option<HashMap<&str,&str>>>()
+        .ok_or("invalid mapping found")?;
 
     Ok((mappings, formula))
 }
@@ -72,10 +73,35 @@ fn p1(s: &str) -> usize {
     let (mappings, formula) = parse(s).unwrap();
     let mut unique: HashSet<String> = HashSet::new();
 
-    for (&k,&v) in &mappings {
-        let mut molecule = String::new();
-        
+    for (&k,&v) in &mappings {        
+        let mut i = 0;
+        while i < formula.len() {
+            i = match substr(formula, k, i) {
+                Ok(found_idx) => {
+                    let mut molecule = String::new();
+                    molecule.push_str(&formula[..i]);
+                    molecule.push_str(v);
+                    molecule.push_str(&formula[i+k.len()..]);
+
+
+                    unique.insert(molecule);
+                    found_idx+1
+                },
+                Err(next_idx) => next_idx,
+            };
+        }
     }
 
-    0
+    unique.len()
+}
+
+fn substr(s: &str, sub: &str, start_idx: usize) -> Result<usize, usize> {
+    let mut i = start_idx;
+    while i < s.len() {
+        match s.get(i..i+sub.len()) {
+            Some(v) if v == sub => return Ok(i),
+            _ => i+=1,
+        };
+    }
+    Err(i)
 }
