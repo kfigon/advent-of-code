@@ -82,7 +82,7 @@ fn parse(s: &str) -> Result<(HashMap<&str, Vec<&str>>, &str), &'static str> {
 
     let out = mappings.iter()
         .fold(HashMap::new(), |mut acc, v| {
-            let mut e: &mut Vec<&str> = acc.entry(v.0).or_default();
+            let e: &mut Vec<&str> = acc.entry(v.0).or_default();
             e.push(v.1);
             acc
         });
@@ -91,10 +91,10 @@ fn parse(s: &str) -> Result<(HashMap<&str, Vec<&str>>, &str), &'static str> {
 
 fn p1(s: &str) -> usize {
     let (mappings, formula) = parse(s).unwrap();
-    let mut unique: HashSet<String> = HashSet::new();
 
-    for (&k,vals) in &mappings {
-        for &v in vals {
+    let unique = mappings.iter()
+        .flat_map(|v| v.1.iter().map(move |el| (v.0, el))) // str,Vec<key> -> flat Vec (str, key)
+        .fold(HashSet::new(), |mut unique, (&k, &v)| {
             let mut i = 0;
             while i < formula.len() {
                 i = match substr(formula, k, i) {
@@ -110,8 +110,9 @@ fn p1(s: &str) -> usize {
                     None => break,
                 };
             }
-        }
-    }
+            unique
+        });
+
     unique.len()
 }
 
