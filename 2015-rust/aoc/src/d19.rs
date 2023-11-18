@@ -68,6 +68,11 @@ fn p1_test() {
     assert_eq!(518, p1(&fs::read_to_string("d19.txt").unwrap()));
 }
 
+#[test]
+fn p2_ex() {
+    todo!()
+}
+
 fn parse(s: &str) -> Result<(HashMap<&str, Vec<&str>>, &str), &'static str> {
     let parts = s.split_once("\n\n");
     let (mappings, formula) = match parts {
