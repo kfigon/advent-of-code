@@ -33,23 +33,23 @@ fn p2_test() {
     assert_eq!(55291, p2(&fs::read_to_string("d1.txt").unwrap()));
 }
 
-fn parse(s: &str, nums: impl Fn(&str) -> (Option<u32>, Option<u32>)) -> Vec<u32> {
+fn parse(s: &str, nums: impl Fn(&str) -> Option<(u32,u32)>) -> Vec<u32> {
     s.lines()
         .map(nums)
-        .map(|pair| match pair {
-            (Some(a), Some(b)) => Some(a*10 + b),
-            _ => None,
-        })
+        .map(|pair| pair.map(|v| v.0*10 + v.1))
         .flatten()
         .collect()
 }
 
 fn p1(s: &str) -> u32 {
-    let func = |line: &str| -> (Option<u32>, Option<u32>) {
-        (
+    let func = |line: &str| -> Option<(u32,u32)> {
+        match (
             line.chars().find(|c| c.is_ascii_digit()).and_then(|c| c.to_digit(10)),
             line.chars().rev().find(|c| c.is_ascii_digit()).and_then(|c| c.to_digit(10))
-        )
+        ) {
+            (Some(a), Some(b)) => Some((a,b)),
+            _ => None,
+        }
     };
 
     parse(s, func).iter().sum()
@@ -80,7 +80,7 @@ fn p2(s: &str) -> u32 {
             ("0", 0),
         ]
     );
-    let func = |line: &str| -> (Option<u32>, Option<u32>) {
+    let func = |line: &str| -> Option<(u32,u32)> {
         let from_start = allowed_numbers.iter()
             .map(|(&pattern, &val)| line.find(pattern).map(|idx| (idx, val)))
             .flatten()
@@ -92,8 +92,8 @@ fn p2(s: &str) -> u32 {
             .max_by(|a,b| a.0.cmp(&b.0));
 
         match (from_start, from_end) {
-            (Some(a), Some(b)) => (Some(a.1), Some(b.1)),
-            _ => (None, None),
+            (Some(a), Some(b)) => Some((a.1, b.1)),
+            _ => None,
         }
     };
 
