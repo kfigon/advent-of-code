@@ -36,8 +36,7 @@ fn p2_test() {
 fn parse(s: &str, nums: impl Fn(&str) -> Option<(u32,u32)>) -> Vec<u32> {
     s.lines()
         .map(nums)
-        .map(|pair| pair.map(|v| v.0*10 + v.1))
-        .flatten()
+        .filter_map(|pair| pair.map(|v| v.0*10 + v.1))
         .collect()
 }
 
@@ -82,13 +81,11 @@ fn p2(s: &str) -> u32 {
     );
     let func = |line: &str| -> Option<(u32,u32)> {
         let from_start = allowed_numbers.iter()
-            .map(|(&pattern, &val)| line.find(pattern).map(|idx| (idx, val)))
-            .flatten()
+            .filter_map(|(&pattern, &val)| line.find(pattern).map(|idx| (idx, val)))
             .min_by(|a,b| a.0.cmp(&b.0));
 
         let from_end: Option<(usize, u32)> = allowed_numbers.iter()
-            .map(|(&pattern, &val)| line.rfind(pattern).map(|idx| (idx, val)))
-            .flatten()
+            .filter_map(|(&pattern, &val)| line.rfind(pattern).map(|idx| (idx, val)))
             .max_by(|a,b| a.0.cmp(&b.0));
 
         match (from_start, from_end) {
