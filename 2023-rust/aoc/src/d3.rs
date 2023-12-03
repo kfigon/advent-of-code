@@ -1,4 +1,4 @@
-use std::{str::FromStr, fs};
+use std::{str::FromStr, fs, collections::{HashMap, HashSet}};
 
 static EXAMPLE: &'static str = "467..114..
 ...*......
@@ -26,74 +26,23 @@ fn p2_ex() {
     assert_eq!(467835, p2(EXAMPLE));
 }
 
+#[test]
+fn p2_test() {
+    assert_eq!(72246648, p2(&fs::read_to_string("d3.txt").unwrap()));
+}
+
 struct Grid(Vec<Vec<char>>);
 impl Grid {
-    fn neighbors(&self, row: usize, col: usize) -> [Option<char>; 8] {
+    fn neighbors(&self, row: usize, col: usize) -> [Option<(Coord, char)>; 8] {
+        let get = |r: Option<usize>, c: Option<usize>| -> Option<(Coord,char)> {
+            self.get(r, c).map(|v| (Coord{r: r.unwrap(),c:c.unwrap()}, v))
+        };
+
         [
-            self.get(row.checked_sub(1), col.checked_sub(1)), self.get(row.checked_sub(1), Some(col)), self.get(row.checked_sub(1), col.checked_add(1)),   
-            self.get(Some(row), col.checked_sub(1)),                         self.get(Some(row), col.checked_add(1)),
-            self.get(row.checked_add(1), col.checked_sub(1)), self.get(row.checked_add(1), Some(col)), self.get(row.checked_add(1), col.checked_add(1))
+            get(row.checked_sub(1), col.checked_sub(1)), get(row.checked_sub(1), Some(col)), get(row.checked_sub(1), col.checked_add(1)),   
+            get(Some(row), col.checked_sub(1)),                         get(Some(row), col.checked_add(1)),
+            get(row.checked_add(1), col.checked_sub(1)), get(row.checked_add(1), Some(col)), get(row.checked_add(1), col.checked_add(1))
         ]
-    }
-
-    fn nei_id_to_coord(&self, r: usize, c: usize, idx: usize) -> Option<(usize, usize)> {
-        let coord_within_range = |r: Option<usize>, c: Option<usize>| -> Option<(usize, usize)> { 
-                match (r, c) {
-                (Some(r), Some(c)) if r >= 0 && r < self.rows() && c >= 0 && c < self.cols() => Some((r,c)),
-                _ => None,
-            }
-        };
-
-        match idx {
-            0 => coord_within_range(r.checked_sub(1), c.checked_sub(1)),
-            1 => coord_within_range(r.checked_sub(1), Some(c)),
-            2 => coord_within_range(r.checked_sub(1), c.checked_add(1)),
-
-            3 => coord_within_range(Some(r), c.checked_sub(1)),
-            4 => coord_within_range(Some(r), c.checked_add(1)),
-            
-            5 => coord_within_range(r.checked_add(1), c.checked_sub(1)),
-            6 => coord_within_range(r.checked_add(1), Some(c)),
-            7 => coord_within_range(r.checked_add(1), c.checked_add(1)),
-            _ => None
-        }
-    }
-
-    fn get_number_around_coord(&self, r: usize, c: usize) -> Option<usize> {
-        let is_digit = |c: usize| -> bool {
-            self.get(Some(r), Some(c)).filter(|v| v.is_ascii_digit()).is_some()
-        };
-
-        let mut starting_idx = Some(c);
-        while let Some(idx) = starting_idx {
-            if !is_digit(idx) {
-                break;
-            }
-            starting_idx = idx.checked_sub(1);
-        }
-
-        let mut end_idx = Some(c);
-        while let Some(idx) = end_idx {
-            if idx < self.cols() && !is_digit(idx) {
-                break;
-            }
-            end_idx = idx.checked_add(1);
-        }
-        let (num_start, num_end) = match (starting_idx, end_idx) {
-            (None, None) => (0, self.cols()-1),
-            (None, Some(e)) => (0, e-1),
-            (Some(s), None) => (s+1, self.cols()),
-            (Some(s), Some(e)) => (s+1, e-1),
-        };
-        let mut dig = String::new();
-        for c in num_start..=num_end {
-            let v = match self.get(Some(r), Some(c)) {
-                None => return None,
-                Some(v) => v,
-            };
-            dig.push(v);
-        }
-        dig.parse().ok()
     }
 
     fn get(&self, r: Option<usize>, c: Option<usize>) -> Option<char> {
@@ -111,6 +60,7 @@ impl Grid {
         self.0.get(0).map(|row| row.len()).unwrap_or_default()
     }
 }
+
 impl FromStr for Grid {
     type Err = String;
 
@@ -128,81 +78,76 @@ impl FromStr for Grid {
     }
 }
 
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+struct Coord {
+    r: usize,
+    c: usize
+}
+
 fn p1(s: &str) -> usize {
+    let (_, symbols_with_numbers_around) = process(s);
+
+    symbols_with_numbers_around.into_iter()
+        .map(|v| v.1)
+        .filter(|v| !v.is_empty())
+        .flat_map(|v| v)
+        .sum()
+}
+
+fn process(s: &str) -> (Grid, HashMap<Coord, HashSet<usize>>) {
     let g: Grid = s.parse().expect("invalid input");
-    let mut nums = vec![];
+    let mut symbols_with_numbers_around: HashMap<Coord, HashSet<usize>> = HashMap::new();
 
     for r in 0..g.rows() {
         let mut dig = String::new();
-        let mut has_symbol_around = false;
+        let mut symbols_near_dig: HashSet<Coord> = HashSet::new();
+
         for c in 0..g.cols() {
             let character = g.get(Some(r), Some(c)).unwrap();
 
             if character.is_ascii_digit() {
                 dig.push(character);
 
-                if !has_symbol_around {
-                    has_symbol_around = g.neighbors(r, c).iter().any(|nei| match nei {
-                        None => false,
-                        Some(c) => *c != '.' && !c.is_ascii_digit() ,
+                g.neighbors(r, c).iter()
+                .filter_map(|nei| match nei {
+                    Some((coord, c)) if *c != '.' && !c.is_ascii_digit() => Some((coord.clone(), *c)),
+                    _ => None,
+                })
+                .for_each(|v| { symbols_near_dig.insert(v.0); });
+            
+            } else if !dig.is_empty() {
+                symbols_near_dig.iter()
+                    .for_each(|s| {
+                        let nums = symbols_with_numbers_around.entry(s.clone()).or_default();
+                        nums.insert(dig.parse().unwrap());
                     });
-                }
-            } else {
-                if !dig.is_empty() && has_symbol_around {
-                    nums.push(dig.parse().unwrap());
-                }
-
+                    symbols_near_dig.clear();
                 dig.clear();
-                has_symbol_around = false;
             }
         }
         
-        if !dig.is_empty() && has_symbol_around {
-            nums.push(dig.parse().unwrap());
+        if !dig.is_empty() {
+            symbols_near_dig.into_iter()
+                .for_each(|s| {
+                    let nums = symbols_with_numbers_around.entry(s).or_default();
+                    nums.insert(dig.parse().unwrap());
+                });
         }
     }
 
-    nums.iter().sum()
+    (g, symbols_with_numbers_around)
 }
 
 fn p2(s: &str) -> usize {
-    let g: Grid = s.parse().expect("invalid input");
-    let mut nums = vec![];
-
-    for r in 0..g.rows() {
-        for c in 0..g.cols() {
-            let character = g.get(Some(r), Some(c)).unwrap();
-            if character != '*' {
-                continue;
-            }
-
-            let nei = g.neighbors(r, c);
-            let numeric_nei = nei.iter().enumerate()
-                .filter_map(|(idx, c)| match c {
-                    Some(v) if v.is_ascii_digit() => Some(idx),
-                    _ => None,
-                })
-                .collect::<Vec<usize>>();
-
-                // this can grab same num multiple times
-            if numeric_nei.len() != 2 {
-                continue;
-            }
-            
-            for n in numeric_nei {
-                let mut numz = vec![];
-                match g.nei_id_to_coord(r, c, n) {
-                    None => continue,
-                    Some((r,c)) => match g.get_number_around_coord(r,c) {
-                        None => continue,
-                        Some(v) => numz.push(v),
-                    }
-                }
-                nums.push(numz.iter().product());
-            }
-
-        }        
-    }
-
-    nums.iter().sum()
+    let (grid, symbols_with_numbers_around) = process(s);
+    
+    symbols_with_numbers_around.into_iter()
+        .filter(|v| match grid.get(Some(v.0.r), Some(v.0.c)) {
+            Some('*') => true,
+            _ => false,
+        })
+        .map(|v| v.1)
+        .filter(|v| v.len() == 2)
+        .map(|v| v.iter().product::<usize>())
+        .sum()
 }
