@@ -1,4 +1,4 @@
-use std::{collections::HashSet, str::FromStr, fs};
+use std::{collections::{HashSet, HashMap}, str::FromStr, fs, cmp::min};
 
 static EXAMPLE: &'static str= "Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
 Card 2: 13 32 20 16 61 | 61 30 68 82 17 32 24 19
@@ -13,8 +13,18 @@ fn p1_ex() {
 }
 
 #[test]
+fn p2_ex() {
+    assert_eq!(30, p2(EXAMPLE));
+}
+
+#[test]
 fn p1_test() {
     assert_eq!(23847, p1(&fs::read_to_string("d4.txt").unwrap()));
+}
+
+#[test]
+fn p2_test() {
+    assert_eq!(8570000, p2(&fs::read_to_string("d4.txt").unwrap()));
 }
 
 struct Card {
@@ -60,4 +70,34 @@ fn p1(s: &str) -> usize {
             n => 2usize.pow(n as u32 -1),
         })
         .sum()
+}
+
+fn p2(s: &str) -> usize {
+    let cards = s.lines()
+        .map(|line| line.parse::<Card>())
+        .collect::<Result<Vec<Card>, _>>()
+        .unwrap();
+
+    let max_card_id = cards.iter().map(|v| v.id).max().unwrap_or_default();
+
+    let mut num_of_cards = HashMap::new();
+
+    for card in cards {
+        let mult = { 
+            let e = num_of_cards.entry(card.id).or_default();
+            *e += 1;
+            *e
+        };
+
+        let won = card.winning.intersection(&card.guesses).count();
+        if won == 0 {
+            continue;
+        }
+
+        for id in card.id+1..=min(won+card.id, max_card_id) {
+            *num_of_cards.entry(id).or_default() += mult;
+        }
+    }
+
+    num_of_cards.iter().map(|(_,v)| v).sum()
 }
