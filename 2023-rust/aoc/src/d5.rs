@@ -1,4 +1,4 @@
-use std::{collections::HashMap, str::FromStr};
+use std::{collections::HashMap, str::FromStr, fs};
 
 const EXAMPLE: &'static str = "seeds: 79 14 55 13
 
@@ -39,9 +39,15 @@ fn p1_ex() {
     assert_eq!(35, p1(EXAMPLE));
 }
 
+#[test]
+fn p1_test() {
+    assert_eq!(35, p1(&fs::read_to_string("d5.txt").unwrap()));
+}
+
 #[derive(Debug)]
 struct Map(HashMap<usize, usize>);
 
+// todo: refactor ranges
 impl TryFrom<&[&str]> for Map {
     type Error = String;
 
@@ -138,7 +144,17 @@ impl FromStr for Maps {
 
 fn p1(s: &str) -> usize {
     let m: Maps = s.parse().unwrap();
-    println!("{m:?}");
+    m.seeds.into_iter()
+        .map(|seed| {
+            let soil = m.seed_to_soil.get(seed);
+            let fert = m.soil_to_fertilizer.get(soil);
+            let water = m.fert_to_water.get(fert);
+            let light = m.water_to_ligt.get(water);
+            let temp = m.light_to_temp.get(light);
+            let humid = m.temp_to_humid.get(temp);
+            let loc = m.humid_to_location.get(humid);
 
-    0
+            loc
+        })
+        .min().unwrap()
 }
