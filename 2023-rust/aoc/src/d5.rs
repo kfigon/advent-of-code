@@ -41,13 +41,13 @@ fn p1_ex() {
 
 #[test]
 fn p1_test() {
+    todo!("fix ranges, file data is too big");
     assert_eq!(35, p1(&fs::read_to_string("d5.txt").unwrap()));
 }
 
 #[derive(Debug)]
 struct Map(HashMap<usize, usize>);
 
-// todo: refactor ranges
 impl TryFrom<&[&str]> for Map {
     type Error = String;
 
