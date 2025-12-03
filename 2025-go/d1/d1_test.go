@@ -4,6 +4,7 @@ import (
 	"aoc2025/util"
 	"fmt"
 	"io"
+	"math"
 	"strconv"
 	"strings"
 	"testing"
@@ -65,29 +66,66 @@ func P2(r io.Reader) (int, error) {
 		if err != nil {
 			return 0, err
 		}
-		sum += num
-		base := numberOfHundreds(num)
-		// todo: multiple rotations
-
-		if sum > 99 {
-			res++
-			sum -= (sum / 100) * 100
-		} else if sum < 0 {
-			sum += ((-1 * sum) / 100) * 100
-			res++
-		} else if sum == 0 {
-			res++
-		}
+		newSum, movesOverZero := calcP2(sum, num)
+		sum = newSum
+		res += movesOverZero
 	}
 
 	return res, nil
 }
 
-func numberOfHundreds(v int) int {
-	if v < 0 {
-		return ((-1 * v) / 100)
+func calcP2(position, num int) (newPosition int, movesOverZero int) {
+	var numberOfFullRotations int = num / 100
+	if num < 0 {
+		numberOfFullRotations = -1 * numberOfFullRotations
 	}
-	return v / 100
+	// hundreds changed
+	// move from positive to negative
+	// move from negative to positive
+	moved := position/100 != (position+num)/100
+
+	newPosition = position + num
+	if moved {
+		movesOverZero = 1 + numberOfFullRotations
+	} else {
+		movesOverZero = numberOfFullRotations
+	}
+
+	return
+}
+
+func TestP2Logic(t *testing.T) {
+	testCases := []struct {
+		pos           int
+		num           int
+		newPos        int
+		movesOverZero int
+	}{
+		{50, 50, 100, 1},
+		{50, 150, 200, 2},
+		{50, 160, 210, 2},
+		{50, 130, 180, 1},
+		{50, 3, 53, 0},
+		{50, -3, 47, 0},
+		{50, -180, -130, 2},
+		{50, -130, -80, 1},
+		{50, -50, 0, 1},
+		{50, 240, 290, 2},
+		{50, -240, -190, 2},
+		{-50, 80, 30, 1},
+		{-50, 130, 80, 1},
+		{-50, 3, -47, 0},
+		{-50, -3, -53, 0},
+		{-50, -180, -230, 2},
+		{-50, 240, 190, 2},
+	}
+	for _, tC := range testCases {
+		t.Run(fmt.Sprintf("%d+%d=(%d,%d)", tC.pos, tC.num, tC.newPos, tC.movesOverZero), func(t *testing.T) {
+			newSum, movesOverZero := calcP2(tC.pos, tC.num)
+			assert.Equal(t, tC.newPos, newSum)
+			assert.Equal(t, tC.movesOverZero, movesOverZero)
+		})
+	}
 }
 
 func TestP1(t *testing.T) {
