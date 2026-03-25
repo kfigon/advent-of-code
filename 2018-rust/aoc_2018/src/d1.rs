@@ -39,11 +39,10 @@ fn p2(input: &str) -> Result<i32, Error> {
 
         current_v += v;
 
-        if freq.contains(&current_v) {
+        if !freq.insert(current_v) {
             return Ok(current_v);
         }
 
-        freq.insert(current_v);
         i+=1;
     }
 
