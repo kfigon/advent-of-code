@@ -1,4 +1,4 @@
-use std::{collections::{HashMap, HashSet}, fmt::format, str::FromStr};
+use std::{collections::HashMap, str::FromStr};
 
 #[derive(Debug, PartialEq)]
 struct Descriptor {
@@ -94,15 +94,12 @@ fn p2(input: &str) -> Result<i32, String> {
         let mut allOnes = true;
         for w in v.location.x..v.location.x + v.size.width{
             for h in v.location.y..v.location.y + v.size.height{
-                let c = fabric.get(&Location { x: w, y: h });
-                match c {
-                    Some(&a) => {
-                        if a != 1 {
-                            allOnes = false;
-                            break;
-                        }
+                match fabric.get(&Location { x: w, y: h }) {
+                    Some(&a) if a != 1 => {
+                        allOnes = false;
+                        break;
                     }
-                    None => continue,
+                    _ => continue,
                 }
             }
         }
