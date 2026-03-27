@@ -66,7 +66,7 @@ ababab";
     #[test]
     fn p1_test() {
         let exp = 6150;
-        assert_eq!(exp, p1(&fs::read_to_string("src/d2.txt").unwrap()));
+        assert_eq!(exp, p1(&fs::read_to_string("d2.txt").unwrap()));
     }
     
     #[test]
@@ -83,6 +83,6 @@ wvxyz";
 
     #[test]
     fn p2_test() {
-        assert_eq!(Some("rteotyxzbodglnpkudawhijsc".to_string()), p2(&fs::read_to_string("src/d2.txt").unwrap()));
+        assert_eq!(Some("rteotyxzbodglnpkudawhijsc".to_string()), p2(&fs::read_to_string("d2.txt").unwrap()));
     }
 }

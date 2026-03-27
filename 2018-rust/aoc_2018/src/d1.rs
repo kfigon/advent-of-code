@@ -57,14 +57,14 @@ mod test {
     #[test]
     fn test_p1() {
         let exp = 454;
-        let data = fs::read_to_string("src/d1.txt").unwrap();
+        let data = fs::read_to_string("d1.txt").unwrap();
         assert_eq!(Ok(exp), p1(&data));
     }
 
     #[test]
     fn test_p2() {
         let exp = 566;
-        let data = fs::read_to_string("src/d1.txt").unwrap();
+        let data = fs::read_to_string("d1.txt").unwrap();
         assert_eq!(Ok(exp), p2(&data));
     }
 
