@@ -63,20 +63,16 @@ impl FromStr for Descriptor {
     }
 }
 
-fn build_fabric(descs: &Vec<Descriptor>) -> HashMap<Location, HashSet<i32>> {
-    let mut fabric: HashMap<Location, HashSet<i32>> = HashMap::new();
+fn build_fabric(descs: &Vec<Descriptor>) -> HashMap<Location, i32> {
+    let mut fabric: HashMap<Location, i32> = HashMap::new();
 
     for v in descs {
         for w in v.location.x..v.location.x + v.size.width{
             for h in v.location.y..v.location.y + v.size.height{
                 fabric
                     .entry(Location { x: w, y: h })
-                    .and_modify(|vc| { vc.insert(v.id);})
-                    .or_insert_with(|| {
-                        let mut s = HashSet::new();
-                        s.insert(v.id);
-                        s
-                    });
+                    .and_modify(|vc| { *vc +=1; } )
+                    .or_insert(1);
             }
         }
     }
@@ -87,7 +83,7 @@ fn build_fabric(descs: &Vec<Descriptor>) -> HashMap<Location, HashSet<i32>> {
 fn p1(input: &str) -> Result<i32, String> {
     let descs = input.lines().map(&str::parse::<Descriptor>).collect::<Result<Vec<_>, _>>()?;
     let fabric = build_fabric(&descs);
-    Ok(fabric.into_values().filter(|v| v.len() > 1).count() as i32)
+    Ok(fabric.into_values().filter(|&v| v > 1).count() as i32)
 }
 
 fn p2(input: &str) -> Result<i32, String> {
@@ -100,8 +96,8 @@ fn p2(input: &str) -> Result<i32, String> {
             for h in v.location.y..v.location.y + v.size.height{
                 let c = fabric.get(&Location { x: w, y: h });
                 match c {
-                    Some(a) => {
-                        if a.len() != 1 {
+                    Some(&a) => {
+                        if a != 1 {
                             allOnes = false;
                             break;
                         }
