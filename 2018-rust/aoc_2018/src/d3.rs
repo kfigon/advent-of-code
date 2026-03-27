@@ -7,7 +7,7 @@ struct Descriptor {
     size: Size,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 struct Location {
     x: i32,
     y: i32,
@@ -63,26 +63,58 @@ impl FromStr for Descriptor {
     }
 }
 
-fn p1(input: &str) -> Result<i32, String> {
-    let mut fabric: HashSet<(i32,i32)> = HashSet::new();
-    let mut taken: HashSet<(i32,i32)> = HashSet::new();
+fn build_fabric(descs: &Vec<Descriptor>) -> HashMap<Location, HashSet<i32>> {
+    let mut fabric: HashMap<Location, HashSet<i32>> = HashMap::new();
 
-    let descs = input.lines().map(&str::parse::<Descriptor>);
-    for d in descs {
-        match d {
-            Ok(v) => {
-                for w in v.location.x..v.location.x + v.size.width{
-                    for h in v.location.y..v.location.y + v.size.height{
-                        if !fabric.insert((w,h)){
-                           taken.insert((w,h));
-                        }
-                    }
-                }
-            },
-            Err(e) => return Err(e),
+    for v in descs {
+        for w in v.location.x..v.location.x + v.size.width{
+            for h in v.location.y..v.location.y + v.size.height{
+                fabric
+                    .entry(Location { x: w, y: h })
+                    .and_modify(|vc| { vc.insert(v.id);})
+                    .or_insert_with(|| {
+                        let mut s = HashSet::new();
+                        s.insert(v.id);
+                        s
+                    });
+            }
         }
     }
-    Ok(taken.len() as i32)
+
+    fabric
+}
+
+fn p1(input: &str) -> Result<i32, String> {
+    let descs = input.lines().map(&str::parse::<Descriptor>).collect::<Result<Vec<_>, _>>()?;
+    let fabric = build_fabric(&descs);
+    Ok(fabric.into_values().filter(|v| v.len() > 1).count() as i32)
+}
+
+fn p2(input: &str) -> Result<i32, String> {
+    let descs = input.lines().map(&str::parse::<Descriptor>).collect::<Result<Vec<_>, _>>()?;
+    let fabric = build_fabric(&descs);
+    
+    for v in descs {
+        let mut allOnes = true;
+        for w in v.location.x..v.location.x + v.size.width{
+            for h in v.location.y..v.location.y + v.size.height{
+                let c = fabric.get(&Location { x: w, y: h });
+                match c {
+                    Some(a) => {
+                        if a.len() != 1 {
+                            allOnes = false;
+                            break;
+                        }
+                    }
+                    None => continue,
+                }
+            }
+        }
+        if allOnes {
+            return Ok(v.id);
+        }
+    }
+    Err("not found".to_string())
 }
 
 #[cfg(test)]
@@ -109,5 +141,18 @@ mod test {
     #[test]
     fn p1_test() {
        assert_eq!(Ok(116920), p1(&fs::read_to_string("d3.txt").unwrap()));
+    }
+
+    #[test]
+    fn p2_ex() {
+        let data = "#1 @ 1,3: 4x4
+#2 @ 3,1: 4x4
+#3 @ 5,5: 2x2";
+        assert_eq!(Ok(3), p2(data));
+    }
+
+    #[test]
+    fn p2_test() {
+       assert_eq!(Ok(382), p2(&fs::read_to_string("d3.txt").unwrap()));
     }
 }
