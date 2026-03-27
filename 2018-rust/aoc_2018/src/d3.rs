@@ -1,4 +1,4 @@
-use std::{fmt::format, str::FromStr};
+use std::{collections::{HashMap, HashSet}, fmt::format, str::FromStr};
 
 #[derive(Debug, PartialEq)]
 struct Descriptor {
@@ -64,11 +64,31 @@ impl FromStr for Descriptor {
 }
 
 fn p1(input: &str) -> Result<i32, String> {
-    todo!()
+    let mut fabric: HashSet<(i32,i32)> = HashSet::new();
+    let mut taken: HashSet<(i32,i32)> = HashSet::new();
+
+    let descs = input.lines().map(&str::parse::<Descriptor>);
+    for d in descs {
+        match d {
+            Ok(v) => {
+                for w in v.location.x..v.location.x + v.size.width{
+                    for h in v.location.y..v.location.y + v.size.height{
+                        if !fabric.insert((w,h)){
+                           taken.insert((w,h));
+                        }
+                    }
+                }
+            },
+            Err(e) => return Err(e),
+        }
+    }
+    Ok(taken.len() as i32)
 }
 
 #[cfg(test)]
 mod test {
+    use std::fs;
+
     use super::*;
     
     #[test]
@@ -80,6 +100,14 @@ mod test {
 
     #[test]
     fn p1_ex() {
-        todo!()
+        let data = "#1 @ 1,3: 4x4
+#2 @ 3,1: 4x4
+#3 @ 5,5: 2x2";
+        assert_eq!(Ok(4), p1(data));
+    }
+    
+    #[test]
+    fn p1_test() {
+       assert_eq!(Ok(116920), p1(&fs::read_to_string("d3.txt").unwrap()));
     }
 }
