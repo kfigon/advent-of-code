@@ -112,13 +112,41 @@ fn parse_input(input: &str) -> Result<Timeline, String> {
         }
         return Ordering::Equal;
     });
-    timeline.iter().for_each(|v| println!("{:?}", v));
-    todo!()
+    Ok(timeline)
 }
 
 fn longest_sleep(timeline: &Timeline) -> Option<(ID, usize)> {
     let mut sleep_times = HashMap::<ID, usize>::new();
-    todo!()
+    enum State {
+        start,
+        guardEvent(ID),
+        fellAsleep(ID, Time),
+        wokeUp(ID, Time),
+    }
+    
+    
+    let mut parser_state = State::start;
+    for t in timeline {
+        match (&t.event, parser_state) {
+            (EventType::Begin(new_id), State::start) => {
+                parser_state = State::guardEvent(*new_id);
+            }
+            (EventType::Begin(new_id), State::guardEvent(id)) => todo!(),
+            (EventType::Begin(new_id), State::fellAsleep(id, time)) => todo!(),
+            (EventType::Begin(new_id), State::wokeUp(id, time)) => todo!(),
+            (EventType::WakeUp, State::guardEvent(id)) => todo!(),
+            (EventType::WakeUp, State::fellAsleep(id, time)) => todo!(),
+            (EventType::WakeUp, State::wokeUp(id, time)) => todo!(),
+            (EventType::Sleep, State::guardEvent(id)) => todo!(),
+            (EventType::Sleep, State::fellAsleep(id, time)) => todo!(),
+            (EventType::Sleep, State::wokeUp(id, time)) => todo!(),
+
+            (EventType::Sleep, State::start) => unreachable!(),
+            (EventType::WakeUp, State::start) => unreachable!(),
+        }
+    }
+
+    sleep_times.iter().max()
 }
 
 #[cfg(test)]
