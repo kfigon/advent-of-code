@@ -1,4 +1,4 @@
-use std::{collections::{HashMap, HashSet}, fmt::format};
+use std::{collections::{HashMap, HashSet}};
 
 fn p1(input: &str) -> i32 {
     let count_freqs = |l: &str| -> HashMap<char, i32> {
@@ -36,7 +36,7 @@ fn p2(input: &str) -> Option<String> {
         let mut set: HashSet<String> = HashSet::new();
         for line in &lines {
         
-           let mut modified_line = format!("{}{}", &line[..c_idx],  &line[c_idx+1..]);
+           let modified_line = format!("{}{}", &line[..c_idx],  &line[c_idx+1..]);
            if !set.insert(modified_line.clone()) {
             return Some(modified_line);
            }
