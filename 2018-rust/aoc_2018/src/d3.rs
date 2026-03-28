@@ -7,7 +7,20 @@ struct Descriptor {
     size: Size,
 }
 
-#[derive(Debug, PartialEq, Eq, Hash)]
+impl Descriptor {
+    fn iter(&self) -> impl Iterator<Item = Location> {
+        let x0 = self.location.x;
+        let y0 = self.location.y;
+        let w = self.size.width;
+        let h = self.size.height;
+
+        (y0..y0 + h).flat_map(move |y| {
+            (x0..x0 + w).map(move |x| Location { x, y })
+        })
+    }
+}
+
+#[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
 struct Location {
     x: i32,
     y: i32,
@@ -23,43 +36,17 @@ impl FromStr for Descriptor {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let parts = s.split_whitespace().collect::<Vec<_>>();
-        let id = parts.get(0);
-        let loc = parts.get(2);
-        let size = parts.get(3);
+        let parts: Vec<&str> = s.split(&['#', '@', ',', ':', 'x', ' '][..])
+                                   .filter(|x| !x.is_empty())
+                                   .collect();
 
-        let (idRaw, locRaw, sizeRaw) = match (id, loc, size) {
-            (Some(idV), Some(locV), Some(sizeV)) => (idV, locV, sizeV),
-            _ => return Err(format!("some parts are missing. id: {:?}, loc: {:?}, size: {:?} for string: {}", id, loc, size, s)),
-        };
+        let id: i32 = parts.get(0).ok_or(format!("missing id in {}", s))?.parse().map_err(|err|format!("failed parsing id for {}: {}", s, err))?;
+        let x: i32 = parts.get(1).ok_or(format!("missing x in {}", s))?.parse().map_err(|err|format!("failed parsing x for {}: {}", s, err))?;
+        let y: i32 = parts.get(2).ok_or(format!("missing y in {}", s))?.parse().map_err(|err|format!("failed parsing y for {}: {}", s, err))?;
+        let width: i32 = parts.get(3).ok_or(format!("missing width in {}", s))?.parse().map_err(|err|format!("failed parsing width for {}: {}", s, err))?;
+        let height: i32 = parts.get(4).ok_or(format!("missing height in {}", s))?.parse().map_err(|err|format!("failed parsing height for {}: {}", s, err))?;
 
-        let id = idRaw.replace("#", "").parse::<i32>().map_err(|err| format!("invalid id: {} for {}", err, s))?;
-        let binding = locRaw.replace(":", "");
-        let locRaw = binding.split_once(",");
-        let location = match locRaw {
-            Some((a, b)) => {
-                match (a.parse::<i32>(), b.parse::<i32>()) {
-                    (Ok(x), Ok(y)) => Location{x,y},
-                    _ => return Err(format!("invalid loc - not numbers for {}", s)),
-                }
-            },
-            _ => return Err(format!("invalid loc: {:?} for {}", locRaw, s)),
-        };
-
-
-        let binding = sizeRaw.replace(":", "");
-        let sizeRaw = binding.split_once("x");
-        let size = match sizeRaw {
-            Some((a,b)) => {
-                match (a.parse::<i32>(), b.parse::<i32>()) {
-                    (Ok(x), Ok(y)) => Size{width: x, height: y},
-                    _ => return Err(format!("invalid size -  not numbers for {}", s)),
-                }
-            },
-            _ => return Err(format!("invalid size: {:?} for {}", size, s)),
-        };
-
-        Ok(Descriptor {id, location, size})
+        Ok(Descriptor{ id, location: Location { x, y }, size: Size { width, height } })
     }
 }
 
@@ -67,13 +54,11 @@ fn build_fabric(descs: &Vec<Descriptor>) -> HashMap<Location, i32> {
     let mut fabric: HashMap<Location, i32> = HashMap::new();
 
     for v in descs {
-        for w in v.location.x..v.location.x + v.size.width{
-            for h in v.location.y..v.location.y + v.size.height{
-                fabric
-                    .entry(Location { x: w, y: h })
-                    .and_modify(|vc| { *vc +=1; } )
-                    .or_insert(1);
-            }
+        for loc in v.iter() {
+            fabric
+                .entry(loc.clone())
+                .and_modify(|vc| { *vc +=1; } )
+                .or_insert(1);
         }
     }
 
