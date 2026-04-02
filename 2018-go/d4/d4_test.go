@@ -123,6 +123,10 @@ func p2(data string) (int, error) {
 			}
 		}
 	}
+
+	if maxGuard == nil || maxMinute == nil {
+		return 0, fmt.Errorf("result not found")
+	}
 	return *maxMinute * int(*maxGuard), nil
 }
 
@@ -135,23 +139,25 @@ func sleepReport(data string) (map[guardID]map[int]int, error) {
 
 	lastGuardID := -1
 	lastSleepID := -1
-	for i := 0; i < len(timeline); i++ {
-		ev := timeline[i]
-		if ev.eventType == begins {
+	for i, ev := range timeline {
+		switch ev.eventType {
+		case begins:
 			if ev.guardID == nil {
 				return nil, fmt.Errorf("error on line %d, missing guard id", i)
 			}
 			lastGuardID = i
-		} else if ev.eventType == FallsAsleep {
+		case FallsAsleep:
 			lastSleepID = i
-		} else if ev.eventType == WakesUp {
+		case WakesUp:
 			if lastGuardID == -1 || lastSleepID == -1 {
 				return nil, fmt.Errorf("corrupted data, guard or sleep not found for wakeup, idx: %d", i)
 			}
+
 			min, err := calcSleepMinutes(timeline[lastSleepID].time, timeline[i].time)
 			if err != nil {
 				return nil, fmt.Errorf("error calculating sleep minutes on id %d: %w", i, err)
 			}
+
 			for _, m := range min {
 				_, ok := expandedSleepTimes[*timeline[lastGuardID].guardID]
 				if !ok {
@@ -159,7 +165,7 @@ func sleepReport(data string) (map[guardID]map[int]int, error) {
 				}
 				expandedSleepTimes[*timeline[lastGuardID].guardID][m]++
 			}
-		} else {
+		default:
 			return nil, fmt.Errorf("invalid event: %v", ev.eventType)
 		}
 	}
