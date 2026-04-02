@@ -84,7 +84,7 @@ func p1(data string) (int, error) {
 	}
 
 	sleptMinutes := expandedSleepTimes[*maxSleepGuardID]
-	var maxMinute *int
+	var maxMinute *minute
 	for m, v := range sleptMinutes {
 		if maxMinute == nil {
 			maxMinute = &m
@@ -96,7 +96,7 @@ func p1(data string) (int, error) {
 		}
 	}
 
-	return int(*maxSleepGuardID) * *maxMinute, nil
+	return int(*maxSleepGuardID) * int(*maxMinute), nil
 }
 
 func p2(data string) (int, error) {
@@ -106,7 +106,7 @@ func p2(data string) (int, error) {
 	}
 
 	var maxGuard *guardID
-	var maxMinute *int
+	var maxMinute *minute
 	for guard, minuteReport := range expandedSleepTimes {
 		for minute, cnt := range minuteReport {
 			if maxGuard == nil {
@@ -127,15 +127,15 @@ func p2(data string) (int, error) {
 	if maxGuard == nil || maxMinute == nil {
 		return 0, fmt.Errorf("result not found")
 	}
-	return *maxMinute * int(*maxGuard), nil
+	return int(*maxMinute) * int(*maxGuard), nil
 }
 
-func sleepReport(data string) (map[guardID]map[int]int, error) {
+func sleepReport(data string) (map[guardID]map[minute]int, error) {
 	timeline, err := parseAndSort(data)
 	if err != nil {
 		return nil, err
 	}
-	expandedSleepTimes := map[guardID]map[int]int{}
+	expandedSleepTimes := map[guardID]map[minute]int{}
 
 	var lastGuardID *guardID
 	lastSleepID := -1
@@ -161,7 +161,7 @@ func sleepReport(data string) (map[guardID]map[int]int, error) {
 			for _, m := range min {
 				_, ok := expandedSleepTimes[*lastGuardID]
 				if !ok {
-					expandedSleepTimes[*lastGuardID] = map[int]int{}
+					expandedSleepTimes[*lastGuardID] = map[minute]int{}
 				}
 				expandedSleepTimes[*lastGuardID][m]++
 			}
@@ -172,7 +172,7 @@ func sleepReport(data string) (map[guardID]map[int]int, error) {
 	return expandedSleepTimes, nil
 }
 
-func sumMinutes(m map[int]int) int {
+func sumMinutes(m map[minute]int) int {
 	out := 0
 	for _, v := range m {
 		out += v
@@ -181,12 +181,12 @@ func sumMinutes(m map[int]int) int {
 }
 
 // it's always single night, no need to check a lot of fields. It's always the minute part
-func calcSleepMinutes(before, after time) ([]int, error) {
+func calcSleepMinutes(before, after time) ([]minute, error) {
 	if sortTime(before, after) > 0 {
 		return nil, fmt.Errorf("items are not sorted, %v should be before %v", before, after)
 	}
 
-	out := make([]int, 0, after.minute-before.minute)
+	out := make([]minute, 0, after.minute-before.minute)
 	for i := before.minute; i < after.minute; i++ {
 		out = append(out, i)
 	}
@@ -218,12 +218,13 @@ const (
 	WakesUp
 )
 
+type minute int
 type time struct {
 	year   int
 	month  int
 	day    int
 	hour   int
-	minute int
+	minute minute
 }
 
 type guardID int
@@ -290,7 +291,7 @@ func parse(line string) (event, error) {
 	if err != nil {
 		return zero, fmt.Errorf("error parsing hour: %s: %w", line, err)
 	}
-	minute, err := strconv.Atoi(parts[4])
+	min, err := strconv.Atoi(parts[4])
 	if err != nil {
 		return zero, fmt.Errorf("error parsing minute: %s: %w", line, err)
 	}
@@ -318,7 +319,7 @@ func parse(line string) (event, error) {
 			month:  month,
 			day:    day,
 			hour:   hour,
-			minute: minute,
+			minute: minute(min),
 		},
 	}, nil
 }
