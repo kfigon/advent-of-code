@@ -137,7 +137,7 @@ func sleepReport(data string) (map[guardID]map[int]int, error) {
 	}
 	expandedSleepTimes := map[guardID]map[int]int{}
 
-	lastGuardID := -1
+	var lastGuardID *guardID
 	lastSleepID := -1
 	for i, ev := range timeline {
 		switch ev.eventType {
@@ -145,25 +145,25 @@ func sleepReport(data string) (map[guardID]map[int]int, error) {
 			if ev.guardID == nil {
 				return nil, fmt.Errorf("error on line %d, missing guard id", i)
 			}
-			lastGuardID = i
+			lastGuardID = ev.guardID
 		case FallsAsleep:
 			lastSleepID = i
 		case WakesUp:
-			if lastGuardID == -1 || lastSleepID == -1 {
+			if lastGuardID == nil || lastSleepID == -1 {
 				return nil, fmt.Errorf("corrupted data, guard or sleep not found for wakeup, idx: %d", i)
 			}
 
-			min, err := calcSleepMinutes(timeline[lastSleepID].time, timeline[i].time)
+			min, err := calcSleepMinutes(timeline[lastSleepID].time, ev.time)
 			if err != nil {
 				return nil, fmt.Errorf("error calculating sleep minutes on id %d: %w", i, err)
 			}
 
 			for _, m := range min {
-				_, ok := expandedSleepTimes[*timeline[lastGuardID].guardID]
+				_, ok := expandedSleepTimes[*lastGuardID]
 				if !ok {
-					expandedSleepTimes[*timeline[lastGuardID].guardID] = map[int]int{}
+					expandedSleepTimes[*lastGuardID] = map[int]int{}
 				}
-				expandedSleepTimes[*timeline[lastGuardID].guardID][m]++
+				expandedSleepTimes[*lastGuardID][m]++
 			}
 		default:
 			return nil, fmt.Errorf("invalid event: %v", ev.eventType)
