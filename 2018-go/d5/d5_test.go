@@ -2,6 +2,7 @@ package d5
 
 import (
 	"testing"
+	"unicode"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -26,4 +27,8 @@ func TestP1Examples(t *testing.T) {
 
 func resolve(in string) string {
 	return ""
+}
+
+func arePolar(a, b rune) bool {
+	return unicode.ToUpper(a) == b || unicode.ToUpper(b) == a
 }
