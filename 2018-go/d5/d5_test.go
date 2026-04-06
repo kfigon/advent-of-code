@@ -48,18 +48,44 @@ func TestP2(t *testing.T) {
 func resolve(in string) string {
 	// this is a stack, if last interracts with current - pop
 	// reassinging strings out = out[:prevIdx] + out[i+1:] is slow, because it allocates
-	out := make([]byte, 0, len(in))
+	s := &stack[byte]{}
 
 	for i := 0; i < len(in); i++ {
 		this := in[i]
 
-		if len(out) > 0 && arePolar(out[len(out)-1], this) {
-			out = out[:len(out)-1] // pop
+		prev, ok := s.peek()
+		if ok && arePolar(prev, this) {
+			s.pop()
 		} else {
-			out = append(out, this) // push
+			s.push(this)
 		}
 	}
-	return string(out)
+	return string(s.s)
+}
+
+type stack[T any] struct {
+	s []T
+}
+
+func (s *stack[T]) peek() (T, bool) {
+	if len(s.s) == 0 {
+		var zero T
+		return zero, false
+	}
+	ret := s.s[len(s.s)-1]
+	return ret, true
+}
+
+func (s *stack[T]) pop() (T, bool) {
+	got, ok := s.peek()
+	if ok {
+		s.s = s.s[:len(s.s)-1]
+	}
+	return got, ok
+}
+
+func (s *stack[T]) push(v T) {
+	s.s = append(s.s, v)
 }
 
 func arePolar(a, b byte) bool {
