@@ -104,12 +104,21 @@ func p2(input string) int {
 	for _, v := range input {
 		allChars[unicode.ToLower(v)] = true
 	}
-	minPol := 999999999999999
+	var minV *int
 	for c := range allChars {
 		newStr := strings.ReplaceAll(input, string(unicode.ToLower(c)), "")
 		newStr = strings.ReplaceAll(newStr, string(unicode.ToUpper(c)), "")
 		got := len(resolve(newStr))
-		minPol = min(minPol, got)
+		if minV == nil {
+			minV = &got
+		} else {
+			*minV = min(*minV, got)
+		}
+
 	}
-	return minPol
+
+	if minV == nil {
+		return 0
+	}
+	return *minV
 }
