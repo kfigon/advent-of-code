@@ -2,6 +2,7 @@ package d5
 
 import (
 	"os"
+	"strings"
 	"testing"
 	"unicode"
 
@@ -31,6 +32,17 @@ func TestP1(t *testing.T) {
 	got, err := os.ReadFile("d5.txt")
 	require.NoError(t, err)
 	assert.Equal(t, 9704, p1(string(got)))
+}
+
+func TestP2(t *testing.T) {
+	t.Run("ex", func(t *testing.T) {
+		assert.Equal(t, 4, p2("dabAcCaCBAcCcaDA"))
+	})
+	t.Run("task", func(t *testing.T) {
+		got, err := os.ReadFile("d5.txt")
+		require.NoError(t, err)
+		assert.Equal(t, 6942, p2(string(got)))
+	})
 }
 
 func resolve(in string) string {
@@ -65,4 +77,19 @@ func arePolar(a, b byte) bool {
 
 func p1(input string) int {
 	return len(resolve(input))
+}
+
+func p2(input string) int {
+	allChars := map[rune]bool{}
+	for _, v := range input {
+		allChars[unicode.ToLower(v)] = true
+	}
+	minPol := 999999999999999
+	for c := range allChars {
+		newStr := strings.ReplaceAll(input, string(unicode.ToLower(c)), "")
+		newStr = strings.ReplaceAll(newStr, string(unicode.ToUpper(c)), "")
+		got := len(resolve(newStr))
+		minPol = min(minPol, got)
+	}
+	return minPol
 }
