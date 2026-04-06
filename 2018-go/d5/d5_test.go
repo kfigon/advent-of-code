@@ -46,26 +46,20 @@ func TestP2(t *testing.T) {
 }
 
 func resolve(in string) string {
-	out := in
-	prevIdx := 0
-	i := 1
-	for len(out) != 0 && i < len(out) {
-		this := out[i]
-		prev := out[prevIdx]
-		thisDbg := string(this)
-		prevDbg := string(prev)
-		_ = thisDbg
-		_ = prevDbg
-		if arePolar(prev, this) {
-			out = out[:prevIdx] + out[i+1:]
-			prevIdx = max(prevIdx-1, 0)
-			i = prevIdx + 1
+	// this is a stack, if last interracts with current - pop
+	// reassinging strings out = out[:prevIdx] + out[i+1:] is slow, because it allocates
+	out := make([]byte, 0, len(in))
+
+	for i := 0; i < len(in); i++ {
+		this := in[i]
+
+		if len(out) > 0 && arePolar(out[len(out)-1], this) {
+			out = out[:len(out)-1] // pop
 		} else {
-			i++
-			prevIdx++
+			out = append(out, this) // push
 		}
 	}
-	return out
+	return string(out)
 }
 
 func arePolar(a, b byte) bool {
