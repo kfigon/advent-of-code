@@ -1,10 +1,12 @@
 package d5
 
 import (
+	"os"
 	"testing"
 	"unicode"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestP1Examples(t *testing.T) {
@@ -25,10 +27,42 @@ func TestP1Examples(t *testing.T) {
 	}
 }
 
-func resolve(in string) string {
-	return ""
+func TestP1(t *testing.T) {
+	got, err := os.ReadFile("d5.txt")
+	require.NoError(t, err)
+	assert.Equal(t, 9704, p1(string(got)))
 }
 
-func arePolar(a, b rune) bool {
-	return unicode.ToUpper(a) == b || unicode.ToUpper(b) == a
+func resolve(in string) string {
+	out := in
+	prevIdx := 0
+	i := 1
+	for len(out) != 0 && i < len(out) {
+		this := out[i]
+		prev := out[prevIdx]
+		thisDbg := string(this)
+		prevDbg := string(prev)
+		_ = thisDbg
+		_ = prevDbg
+		if arePolar(prev, this) {
+			out = out[:prevIdx] + out[i+1:]
+			prevIdx = max(prevIdx-1, 0)
+			i = prevIdx + 1
+		} else {
+			i++
+			prevIdx++
+		}
+	}
+	return out
+}
+
+func arePolar(a, b byte) bool {
+	ar := rune(a)
+	br := rune(b)
+	return (unicode.IsUpper(ar) && unicode.IsLower(br) && unicode.ToLower(ar) == br) ||
+		(unicode.IsUpper(br) && unicode.IsLower(ar) && unicode.ToLower(br) == ar)
+}
+
+func p1(input string) int {
+	return len(resolve(input))
 }
