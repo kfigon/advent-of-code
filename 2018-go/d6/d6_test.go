@@ -64,43 +64,32 @@ func parse(data string) ([]coord, error) {
 	return out, nil
 }
 
+type coordIdx int
+type distance struct {
+	len        int
+	coordIdx   coordIdx
+	hadConfict bool
+}
+
 func p1(c []coord) int {
 	start, end := findMapSize(c)
-	type distance struct {
-		len        int
-		coordIdx   int
-		hadConfict bool
-	}
 
-	areas := map[coord]int{}
-	infinite := map[coord]bool{}
+	areas := map[coordIdx]int{}
+	infinite := map[coordIdx]bool{}
 
 	for x := start.x; x <= end.x; x++ {
 		for y := start.y; y <= end.y; y++ {
 
-			var e *distance
 			this := coord{x, y}
-
-			for i, v := range c {
-
-				thisDistance := mahnattanDistance(this, v)
-
-				if e == nil {
-					e = &distance{thisDistance, i, false}
-				} else if thisDistance < e.len {
-					e = &distance{thisDistance, i, false}
-				} else if e.len == thisDistance {
-					e = &distance{thisDistance, i, true}
-				}
-			}
+			e := findMinimapDistanceForPoint(this, c)
 
 			if e != nil && !e.hadConfict {
-				cell := c[e.coordIdx]
-				areas[cell]++
+				areas[e.coordIdx]++
 
+				// if current point was on edge - we're definitely in infinite categories, we need to skip it
 				onEdge := x <= start.x || x >= end.x || y <= start.y || y >= end.y
 				if onEdge {
-					infinite[cell] = true
+					infinite[e.coordIdx] = true
 				}
 			}
 		}
@@ -115,6 +104,25 @@ func p1(c []coord) int {
 	}
 
 	return maxLen
+}
+
+func findMinimapDistanceForPoint(this coord, c []coord) *distance {
+	var e *distance
+
+	for idx, v := range c {
+		i := coordIdx(idx)
+		thisDistance := mahnattanDistance(this, v)
+
+		if e == nil {
+			e = &distance{thisDistance, i, false}
+		} else if thisDistance < e.len {
+			e = &distance{thisDistance, i, false}
+		} else if e.len == thisDistance {
+			e = &distance{thisDistance, i, true}
+		}
+	}
+
+	return e
 }
 
 func findMapSize(c []coord) (start coord, end coord) {
