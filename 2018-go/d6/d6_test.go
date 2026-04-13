@@ -2,6 +2,7 @@ package d6
 
 import (
 	"fmt"
+	"iter"
 	"math"
 	"os"
 	"strconv"
@@ -35,6 +36,25 @@ func TestP1(t *testing.T) {
 
 		got := p1(d)
 		assert.Equal(t, 4284, got)
+	})
+}
+
+func TestP2(t *testing.T) {
+	t.Run("ex", func(t *testing.T) {
+		d, err := parse(example)
+		require.NoError(t, err)
+
+		assert.Equal(t, 16, p2(d, 32))
+	})
+
+	t.Run("file", func(t *testing.T) {
+		f, err := os.ReadFile("d6.txt")
+		require.NoError(t, err)
+		d, err := parse(string(f))
+		require.NoError(t, err)
+
+		got := p2(d, 10000)
+		assert.Equal(t, -1, got)
 	})
 }
 
@@ -104,6 +124,42 @@ func p1(c []coord) int {
 	}
 
 	return maxLen
+}
+
+func xyiter(start, end coord) iter.Seq[coord] {
+	return func(yield func(coord) bool) {
+		for x := start.x; x <= end.x; x++ {
+			for y := start.y; y <= end.y; y++ {
+				if !yield(coord{x, y}) {
+					return
+				}
+			}
+		}
+	}
+}
+
+func p2(c []coord, limit int) int {
+	start, end := findMapSize(c)
+
+	distances := map[coord]bool{}
+	for this := range xyiter(start, end) {
+		sumOfDistances := calculatedAllDistances(this, c)
+		if sumOfDistances < limit {
+			distances[this] = true
+		}
+	}
+
+	// todo: group together
+
+	return 0
+}
+
+func calculatedAllDistances(this coord, allCoords []coord) int {
+	sum := 0
+	for _, c := range allCoords {
+		sum += mahnattanDistance(this, c)
+	}
+	return sum
 }
 
 func findMinimapDistanceForPoint(this coord, c []coord) *distance {
