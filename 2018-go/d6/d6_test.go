@@ -54,7 +54,7 @@ func TestP2(t *testing.T) {
 		require.NoError(t, err)
 
 		got := p2(d, 10000)
-		assert.Equal(t, -1, got)
+		assert.Equal(t, 35490, got)
 	})
 }
 
@@ -97,20 +97,17 @@ func p1(c []coord) int {
 	areas := map[coordIdx]int{}
 	infinite := map[coordIdx]bool{}
 
-	for x := start.x; x <= end.x; x++ {
-		for y := start.y; y <= end.y; y++ {
+	for this := range xyiter(start, end) {
+		e := findMinimapDistanceForPoint(this, c)
 
-			this := coord{x, y}
-			e := findMinimapDistanceForPoint(this, c)
+		x, y := this.x, this.y
+		if e != nil && !e.hadConfict {
+			areas[e.coordIdx]++
 
-			if e != nil && !e.hadConfict {
-				areas[e.coordIdx]++
-
-				// if current point was on edge - we're definitely in infinite categories, we need to skip it
-				onEdge := x <= start.x || x >= end.x || y <= start.y || y >= end.y
-				if onEdge {
-					infinite[e.coordIdx] = true
-				}
+			// if current point was on edge - we're definitely in infinite categories, we need to skip it
+			onEdge := x <= start.x || x >= end.x || y <= start.y || y >= end.y
+			if onEdge {
+				infinite[e.coordIdx] = true
 			}
 		}
 	}
@@ -140,26 +137,30 @@ func xyiter(start, end coord) iter.Seq[coord] {
 
 func p2(c []coord, limit int) int {
 	start, end := findMapSize(c)
+	expandedBoundary := limit / len(c)
+	start = coord{start.x - expandedBoundary, start.y - expandedBoundary}
+	end = coord{end.x + expandedBoundary, end.y + expandedBoundary}
 
-	distances := map[coord]bool{}
+	cnt := 0
+
 	for this := range xyiter(start, end) {
-		sumOfDistances := calculatedAllDistances(this, c)
-		if sumOfDistances < limit {
-			distances[this] = true
+		if _, ok := calculatedAllDistances(this, c, limit); ok {
+			cnt++
 		}
 	}
 
-	// todo: group together
-
-	return 0
+	return cnt
 }
 
-func calculatedAllDistances(this coord, allCoords []coord) int {
+func calculatedAllDistances(this coord, allCoords []coord, limit int) (int, bool) {
 	sum := 0
 	for _, c := range allCoords {
 		sum += mahnattanDistance(this, c)
+		if sum >= limit {
+			return 0, false
+		}
 	}
-	return sum
+	return sum, true
 }
 
 func findMinimapDistanceForPoint(this coord, c []coord) *distance {
