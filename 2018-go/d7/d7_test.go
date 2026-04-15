@@ -35,7 +35,10 @@ func TestP1(t *testing.T) {
 		g, err := parse(string(got))
 
 		require.NoError(t, err)
-		assert.Equal(t, ex, p1(g))
+		result := p1(g)
+
+		assert.NotEqual(t, "LAPFCRGHZTKWNBXIVOSEMUDJQY", result)
+		assert.Equal(t, ex, result)
 	})
 }
 
@@ -64,10 +67,14 @@ func parse(in string) (graph, error) {
 		}
 		startChar := start[0]
 		endChar := end[0]
-		row := g[startChar]
-		row = append(row, endChar)
+		row := g[endChar]
+		row = append(row, startChar)
 
-		g[startChar] = row
+		g[endChar] = row
+	}
+	for k, vals := range g {
+		slices.Sort(vals)
+		g[k] = vals
 	}
 	return g, nil
 }
@@ -75,16 +82,14 @@ func parse(in string) (graph, error) {
 func p1(g graph) string {
 	// find starting node - node without any dependencies
 	dependingNodes := map[byte]bool{}
-	startingNodes := map[byte]bool{}
-	for k, v := range g {
-		startingNodes[k] = true
+	for _, v := range g {
 		for _, e := range v {
 			dependingNodes[e] = true
 		}
 	}
 
 	var startingNode byte
-	for v := range startingNodes {
+	for v := range g {
 		if _, ok := dependingNodes[v]; !ok {
 			startingNode = v
 			break
@@ -93,15 +98,19 @@ func p1(g graph) string {
 
 	var out strings.Builder
 
+	visited := map[byte]bool{}
+
 	var traverse func(byte)
 	traverse = func(n byte) {
-		out.WriteByte(n)
-		children := g[n]
-		slices.Sort(children)
+		if visited[n] {
+			return
+		}
+		visited[n] = true
 
-		for _, child := range children {
+		for _, child := range g[n] {
 			traverse(child)
 		}
+		out.WriteByte(n)
 	}
 	traverse(startingNode)
 
