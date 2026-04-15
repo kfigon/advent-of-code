@@ -67,14 +67,11 @@ func parse(in string) (graph, error) {
 		}
 		startChar := start[0]
 		endChar := end[0]
-		row := g[endChar]
-		row = append(row, startChar)
+		// do not change this order. Works for example, but is wrong, we're missing nodes
+		row := g[startChar]
+		row = append(row, endChar)
 
-		g[endChar] = row
-	}
-	for k, vals := range g {
-		slices.Sort(vals)
-		g[k] = vals
+		g[startChar] = row
 	}
 	return g, nil
 }
@@ -107,6 +104,7 @@ func p1(g graph) string {
 		}
 		visited[n] = true
 
+		slices.Sort(g[n])
 		for _, child := range g[n] {
 			traverse(child)
 		}
@@ -114,5 +112,11 @@ func p1(g graph) string {
 	}
 	traverse(startingNode)
 
-	return out.String()
+	var reversed strings.Builder
+	got := out.String()
+	for i := len(got) - 1; i >= 0; i-- {
+		reversed.WriteByte(got[i])
+	}
+
+	return reversed.String()
 }
