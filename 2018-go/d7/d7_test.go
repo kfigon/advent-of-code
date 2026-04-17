@@ -28,7 +28,7 @@ func TestP1(t *testing.T) {
 	})
 
 	t.Run("real", func(t *testing.T) {
-		ex := "foobar"
+		ex := "LAPFCRGHVZOTKWENBXIMSUDJQY"
 		got, err := os.ReadFile("d7.txt")
 
 		require.NoError(t, err)
@@ -37,11 +37,13 @@ func TestP1(t *testing.T) {
 		require.NoError(t, err)
 		result := p1(g)
 
-		assert.NotEqual(t, "LAPFCRGHZTKWNBXIVOSEMUDJQY", result)
 		assert.Equal(t, ex, result)
 	})
 }
 
+// backward graph: key - node. val - required nodes for the key (dependencies)
+// forward graph: key - node. val - possible ways from key
+// we use forward
 type graph map[byte][]byte
 
 func (g graph) String() string {
@@ -67,56 +69,54 @@ func parse(in string) (graph, error) {
 		}
 		startChar := start[0]
 		endChar := end[0]
-		// do not change this order. Works for example, but is wrong, we're missing nodes
+
 		row := g[startChar]
 		row = append(row, endChar)
-
 		g[startChar] = row
+
+		if _, ok := g[endChar]; !ok {
+			g[endChar] = nil
+		}
 	}
 	return g, nil
 }
 
 func p1(g graph) string {
-	// find starting node - node without any dependencies
-	dependingNodes := map[byte]bool{}
-	for _, v := range g {
-		for _, e := range v {
-			dependingNodes[e] = true
+	// kahn's algorithm
+
+	// how many nodes connect to this node
+	inDegree := map[byte]int{}
+	for _, directions := range g {
+		for _, availableNode := range directions {
+			inDegree[availableNode]++
 		}
 	}
 
-	var startingNode byte
-	for v := range g {
-		if _, ok := dependingNodes[v]; !ok {
-			startingNode = v
-			break
+	queue := []byte{}
+	for k := range g {
+		if deg := inDegree[k]; deg == 0 {
+			queue = append(queue, k)
 		}
 	}
 
 	var out strings.Builder
 
-	visited := map[byte]bool{}
+	for len(queue) > 0 {
+		slices.Sort(queue)
+		top := queue[0]
+		queue = queue[1:]
 
-	var traverse func(byte)
-	traverse = func(n byte) {
-		if visited[n] {
-			return
+		out.WriteByte(top)
+		for _, v := range g[top] {
+			if deg, ok := inDegree[v]; ok && deg != 0 {
+				if deg == 1 {
+					queue = append(queue, v)
+				}
+				inDegree[v]--
+			}
 		}
-		visited[n] = true
-
-		slices.Sort(g[n])
-		for _, child := range g[n] {
-			traverse(child)
-		}
-		out.WriteByte(n)
-	}
-	traverse(startingNode)
-
-	var reversed strings.Builder
-	got := out.String()
-	for i := len(got) - 1; i >= 0; i-- {
-		reversed.WriteByte(got[i])
+		delete(g, top)
 	}
 
-	return reversed.String()
+	return out.String()
 }

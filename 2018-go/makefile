@@ -1,7 +1,7 @@
 .PHONY: test run
 
 test:
-	go test ./...
+	go test -timeout 5s ./...
 
 clean:
 	go clean
