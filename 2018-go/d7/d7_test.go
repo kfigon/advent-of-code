@@ -94,7 +94,7 @@ func p1(g graph) string {
 
 	queue := []byte{}
 	for k := range g {
-		if deg := inDegree[k]; deg == 0 {
+		if inDegree[k] == 0 {
 			queue = append(queue, k)
 		}
 	}
@@ -108,14 +108,13 @@ func p1(g graph) string {
 
 		out.WriteByte(top)
 		for _, v := range g[top] {
-			if deg, ok := inDegree[v]; ok && deg != 0 {
-				if deg == 1 {
-					queue = append(queue, v)
-				}
-				inDegree[v]--
+			// if degree comes to 0, enqueue next
+			if deg := inDegree[v]; deg == 1 {
+				queue = append(queue, v)
 			}
+			inDegree[v]--
 		}
-		delete(g, top)
+		// delete(g, top) // no cycle risk, so we dont need this
 	}
 
 	return out.String()
