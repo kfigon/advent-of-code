@@ -41,6 +41,26 @@ func TestP1(t *testing.T) {
 	})
 }
 
+func TestP2(t *testing.T) {
+	t.Run("ex", func(t *testing.T) {
+		ex := 15
+		g, err := parse(example)
+		require.NoError(t, err)
+		assert.Equal(t, ex, p2(g))
+	})
+
+	t.Run("real", func(t *testing.T) {
+		ex := 123
+		got, err := os.ReadFile("d7.txt")
+
+		require.NoError(t, err)
+		g, err := parse(string(got))
+
+		require.NoError(t, err)
+		assert.Equal(t, ex, p2(g))
+	})
+}
+
 // backward graph: key - node. val - required nodes for the key (dependencies)
 // forward graph: key - node. val - possible ways from key
 // we use forward
@@ -118,4 +138,8 @@ func p1(g graph) string {
 	}
 
 	return out.String()
+}
+
+func p2(g graph) int {
+	return 0
 }
