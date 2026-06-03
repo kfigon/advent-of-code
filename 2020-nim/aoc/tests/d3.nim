@@ -1,6 +1,7 @@
 import unittest
 import options
 import strutils
+import sequtils
 
 const example = """..##.......
 #...#...#..
@@ -39,10 +40,8 @@ proc parse(map: string): Grid =
         raise newException(ValueError, "empty rows provided")
     Grid(rows: rows)
 
-proc p1(map: string): int = 
-    let right = 3
-    let down = 1
-    let g = parse(map)
+proc solve(g: Grid, steps: tuple[right: int, down: int]): int =
+    let (right, down) = steps
 
     let height = g.dims().height
     var count = 0
@@ -54,9 +53,25 @@ proc p1(map: string): int =
     
         c = c + right
         r = r + down
-
     count
+
+proc p1(map: string): int = 
+    let g = parse(map)
+    solve(g, (3,1))
+
+proc p2(map: string): int = 
+    let g = parse(map)
+    let steps = [
+        (1,1),
+        (3,1),
+        (5,1),
+        (7,1),
+        (1,2),
+    ]
+    steps.mapIt(solve(g, it)).foldl(a*b)
 
 suite "d3":
     test "p1 example": check p1(example) == 7
     test "p1": check p1(readFile("resources/d3.txt")) == 167
+    test "p2 example": check p2(example) == 336
+    test "p2": check p2(readFile("resources/d3.txt")) == 736527114
