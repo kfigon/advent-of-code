@@ -43,9 +43,9 @@ proc p2(data: string): Option[int] =
 suite "d1":
   let data = [
     (name:"p1 ex", file:example, fn: p1, exp:514579),
-    (name:"p1", file:readFile("d1/d1.txt"), fn: p1, exp:719796),
+    (name:"p1", file:readFile("resources/d1.txt"), fn: p1, exp:719796),
     (name: "p2 ex", file: example, fn: p2, exp: 241861950),
-    (name:"p2", file:readFile("d1/d1.txt"), fn: p2, exp:144554112),
+    (name:"p2", file:readFile("resources/d1.txt"), fn: p2, exp:144554112),
   ]
   for (name, file, fn, exp) in data:
     test name: check fn(file) == some(exp)

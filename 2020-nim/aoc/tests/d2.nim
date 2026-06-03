@@ -1,5 +1,4 @@
 import unittest
-import tables
 import strutils
 
 const example = """1-3 a: abcde
@@ -41,9 +40,9 @@ proc p2(data: string): int = solve(data, validPasswordP2)
 suite "d2":
   let data = [
     (name: "p1 ex", fn: p1, input: example, exp: 2),
-    (name: "p1", fn: p1, input: readFile("d2/d2.txt"), exp: 500),
+    (name: "p1", fn: p1, input: readFile("resources/d2.txt"), exp: 500),
     (name: "p2 ex", fn: p2, input: example, exp: 1),
-    (name: "p2", fn: p2, input: readFile("d2/d2.txt"), exp: 313),
+    (name: "p2", fn: p2, input: readFile("resources/d2.txt"), exp: 313),
   ]
   for (name, fn, input, exp) in data:
     test name:
