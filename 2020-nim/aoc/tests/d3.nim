@@ -28,13 +28,10 @@ proc dims(g: Grid): tuple[height: int, width: int] =
 proc get(g: Grid, col: int, row: int): Option[Field] = 
     let (height, width) = g.dims
     
-    let el = g.rows[row mod height][col mod width]
-    if el == '.':
-        return some[Field](Empty)
-    elif el == '#':
-        return some[Field](Tree)
-    return none[Field]()
-        
+    case g.rows[row mod height][col mod width]:
+        of '.': some[Field](Empty)
+        of '#': some[Field](Tree)
+        else: none[Field]()
         
 proc parse(map: string): Grid = 
     let rows = map.strip.splitLines()
@@ -59,7 +56,6 @@ proc p1(map: string): int =
         r = r + down
 
     count
-
 
 suite "d3":
     test "p1 example": check p1(example) == 7
