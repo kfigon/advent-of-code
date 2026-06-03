@@ -1,8 +1,6 @@
 import unittest
-import options
 import strutils
 import tables
-import sequtils
 import sets
 
 const example = """ecl:gry pid:860033327 eyr:2020 hcl:#fffffd
