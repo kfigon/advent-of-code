@@ -43,7 +43,7 @@ proc parse(map: string): Grid =
     Grid(rows: rows)
 
 proc p1(map: string): int = 
-    let right = 7
+    let right = 3
     let down = 1
     let g = parse(map)
 
@@ -52,17 +52,15 @@ proc p1(map: string): int =
     var c = 0
     var r = 0
     while r < height:
-        for _ in 0..<right:                
-            for _ in 0..<down:
-                let el = g.get(c,r).get()
-                inc c
-                if el == Tree:
-                    inc count
-        
-            inc r
+        let el = g.get(c,r).get()
+        if el == Tree: inc count
+    
+        c = c + right
+        r = r + down
+
     count
 
 
 suite "d3":
-    test "p1 example":
-        check p1(example) == 7
+    test "p1 example": check p1(example) == 7
+    test "p1": check p1(readFile("resources/d3.txt")) == 167
