@@ -62,11 +62,8 @@ proc p1(map: string): int =
 proc p2(map: string): int = 
     let g = parse(map)
     let steps = [
-        (1,1),
-        (3,1),
-        (5,1),
-        (7,1),
-        (1,2),
+        (1,1), (3,1), (5,1),
+        (7,1), (1,2),
     ]
     steps.mapIt(solve(g, it)).foldl(a*b)
 
