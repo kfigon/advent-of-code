@@ -3,6 +3,8 @@ import strutils
 import options
 import math
 import strformat
+import sequtils
+import algorithm
 
 proc seatId(d: string): int = 
     var row = 0
@@ -30,6 +32,17 @@ proc p1(d: string): Option[int] =
             res = some(seat)
     res
 
+proc p2(d: string): Option[int] = 
+    let all = d.splitLines.mapIt(seatId(it)).sorted()
+    for i in 0..<all.len-1:
+        let this = all[i]
+        let next = all[i+1]
+        if next - this != 1:
+            return some(this+1)
+
+    none[int]()
+
+
 suite "d5 seatid":
     let data = [
         ("FBFBBFFRLR", 357),
@@ -40,5 +53,10 @@ suite "d5 seatid":
     for d in data:
         test d[0]: 
             check seatId(d[0]) == d[1]
+
+    let file = readFile("resources/d5.txt")
+
     test "p1":
-        check p1(readFile("resources/d5.txt")) == some(850)    
+        check p1(file) == some(850)    
+    test "p2":
+        check p2(file) ==  some(599)
