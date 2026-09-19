@@ -2,13 +2,18 @@ import request from "supertest";
 import { initApp } from "../src/app";
 import {closeDatabase} from "../src/db";
 
-describe("GET /api/hello", () => {
-  afterAll(async () => {
-    await closeDatabase();
-  });
+let app: Awaited<ReturnType<typeof initApp>>;
 
+beforeEach(async () => {
+  app = await initApp();
+});
+
+afterAll(async () => {
+  await closeDatabase();
+});
+
+describe("GET /api/hello", () => {
   it("returns a hello message", async () => {
-    const app = await initApp();
     const response = await request(app)
       .get("/api/hello");
 

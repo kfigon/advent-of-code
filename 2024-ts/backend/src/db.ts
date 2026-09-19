@@ -10,7 +10,6 @@ let db: Db;
 export async function connectToDatabase(): Promise<Db> {
   await client.connect();
   db = client.db("tasks");
-  console.log("Connected to MongoDB");
 
   return db;
 }
