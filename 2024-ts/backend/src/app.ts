@@ -1,11 +1,12 @@
 import express from "express";
 import { connectToDatabase, getDatabase } from "./db";
+import {Config} from "./config"
 
-export async function initApp() {
+export async function initApp(conf: Config) {
   const app = express();
   app.use(express.json());
   
-  await connectToDatabase();
+  await connectToDatabase(conf.dbConf);
 
   app.get("/api/hello", async (req, res) => {
     const db = getDatabase();

@@ -1,15 +1,23 @@
 import { MongoClient, Db } from "mongodb";
+import { DatabaseConfig } from "./config";
 
-const uri = "mongodb://admin:password@localhost:27017/tasks?authSource=admin";
-const client = new MongoClient(uri, {
-  serverSelectionTimeoutMS: 2000,
-});
 
+let client: MongoClient
 let db: Db;
 
-export async function connectToDatabase(): Promise<Db> {
+export async function connectToDatabase({
+    user,
+    password,
+    port,
+    tableName,
+  }: DatabaseConfig): Promise<Db> {
+
+  const uri = `mongodb://${user}:${password}@localhost:${port}/${tableName}?authSource=admin`;
+  client = new MongoClient(uri, {
+    serverSelectionTimeoutMS: 2000,
+  });
   await client.connect();
-  db = client.db("tasks");
+  db = client.db(tableName);
 
   return db;
 }

@@ -1,11 +1,14 @@
 import request from "supertest";
 import { initApp } from "../src/app";
 import {closeDatabase} from "../src/db";
-
+import { readConfigFromEnv } from "../src/config";
+  
 let app: Awaited<ReturnType<typeof initApp>>;
 
+const conf = readConfigFromEnv()
+
 beforeEach(async () => {
-  app = await initApp();
+  app = await initApp(conf);
 });
 
 afterAll(async () => {
