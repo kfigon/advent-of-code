@@ -67,10 +67,10 @@ function Board() {
     return (
     <>
      <style>{css}</style>
-      { currentPlayer }
+      { gameStateToText(currentPlayer)}
       <div className="button-grid">
       { buttons }
-      {whoWon && <h1>{whoWon}</h1>}
+      {whoWon && <p>{whoWon}</p>}
       </div>
     </>
     )
