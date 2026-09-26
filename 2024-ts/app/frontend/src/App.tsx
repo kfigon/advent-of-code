@@ -1,14 +1,24 @@
 import './App.css'
 
-function App() {
+export default function App() {
+  const click = () =>  alert('hi there')
+
   return (
     <>
       <section id="center">
         <h1>hello ziom</h1>
-        <button>Click me</button>
+        <Button text="Click me" event={click}/>
       </section>
     </>
   )
 }
 
-export default App
+type ButtonProps = {
+  text: string
+  event: () => void
+}
+function Button({text, event}: ButtonProps) {
+  return (
+    <button onClick={event}>{text}</button>
+  )
+}
