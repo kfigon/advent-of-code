@@ -1,13 +1,14 @@
 import './App.css'
+import { useState } from 'react'
+import TicTacToe from './TickTacToe'
 
 export default function App() {
-  const click = () =>  alert('hi there')
-
   return (
     <>
       <section id="center">
         <h1>hello ziom</h1>
-        <Button text="Click me" event={click}/>
+        <Button text="Click me" />
+        <TicTacToe />
       </section>
     </>
   )
@@ -15,10 +16,18 @@ export default function App() {
 
 type ButtonProps = {
   text: string
-  event: () => void
+  event?: () => void
 }
 function Button({text, event}: ButtonProps) {
+  // adding memory to our components
+  const [count, setCount] = useState(0);
+
+  const handler = () => {
+    setCount(count+1);
+    if (event) event();
+  }
+
   return (
-    <button onClick={event}>{text}</button>
+    <button onClick={handler}>{`${text}, clicked ${count} times`}</button>
   )
 }
