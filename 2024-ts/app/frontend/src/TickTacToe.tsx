@@ -2,9 +2,9 @@ import { useState } from "react";
 
 export default function TicTacToe() {
    return(
-   <>
-    <Board />
-    </>
+      <section id="center">
+        <Board />
+      </section>
    ) 
 }
 
