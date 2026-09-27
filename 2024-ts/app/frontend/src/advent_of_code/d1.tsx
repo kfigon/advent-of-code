@@ -8,7 +8,7 @@ type ParseRes = {
     left: number[]
     right: number[]
 }
-function parse(v :string): ParseRes | null {
+export function parse(v :string): ParseRes | null {
     const lines = v.split('\n')
     const splitedLines = lines.map(v => v.split(/\s+/)).map(pair => [Number(pair[0]), Number(pair[1])])
     const left = splitedLines.map(v=> v[0])
@@ -16,7 +16,7 @@ function parse(v :string): ParseRes | null {
     return {left,right}
 }
 
-function solveP1({left: leftGiven, right: rightGiven}: ParseRes): number | null {
+export function solveP1({left: leftGiven, right: rightGiven}: ParseRes): number | null {
     const left = leftGiven.slice();
     const right = rightGiven.slice();
 
@@ -32,7 +32,7 @@ function solveP1({left: leftGiven, right: rightGiven}: ParseRes): number | null 
     return res;
 }
 
-function solveP2({left, right}: ParseRes): number | null {
+export function solveP2({left, right}: ParseRes): number | null {
     const occurences = new Map<number,number>();
     right.forEach(v => occurences.set(v, (occurences.get(v) ?? 0) + 1))
     return left.map(v => v * (occurences.get(v) ?? 0)).reduce((a,b) => a+b)

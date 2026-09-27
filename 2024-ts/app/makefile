@@ -34,7 +34,7 @@ test:
 
 # Frontend tests
 frontend-test:
-	cd frontend && npm test
+	cd frontend && npm run test
 
 # Frontend lint
 lint:
