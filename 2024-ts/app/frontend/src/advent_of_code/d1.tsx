@@ -8,8 +8,9 @@ export default function D1() {
     return (
         <>
             <Uploader callback={(v) => {
-                    setResult1(solveP1(v)?.toString() ?? '')
-                    setResult2(solveP2(v)?.toString() ?? '')
+                    const [left, right] = parse(v);
+                    setResult1(solveP1(left, right)?.toString() ?? '')
+                    setResult2(solveP2(left, right)?.toString() ?? '')
                 }
             }/>
             <h1>{'p1: ' + res1}</h1>
@@ -18,11 +19,17 @@ export default function D1() {
     )
 }
 
-function solveP1(v: string): number | null {
+function parse(v :string): [number[], number[]] {
     const lines = v.split('\n')
     const splitedLines = lines.map(v => v.split(/\s+/)).map(pair => [Number(pair[0]), Number(pair[1])])
     const left = splitedLines.map(v=> v[0])
     const right = splitedLines.map(v=> v[1])
+    return [left, right];
+}
+
+function solveP1(leftGiven: number[], rightGiven: number[]): number | null {
+    const left = leftGiven.slice();
+    const right = rightGiven.slice();
 
     left.sort()
     right.sort()
@@ -36,6 +43,8 @@ function solveP1(v: string): number | null {
     return res;
 }
 
-function solveP2(_: string): number | null {
-    return null;
+function solveP2(left: number[], right: number[]): number | null {
+    const occurences = new Map<number,number>();
+    right.forEach(v => occurences.set(v, (occurences.get(v) ?? 0) + 1))
+    return left.map(v => v * (occurences.get(v) ?? 0)).reduce((a,b) => a+b)
 }
