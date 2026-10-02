@@ -30,7 +30,7 @@ type Result = {
     p2?: number
 }
 
-function solve(v: string, min: number, max: number): Result {
+export function solve(v: string, min: number, max: number): Result {
     const lines: number[][] = v.split('\n').map(line => line.split(/\s+/).map(Number));
 
     let p1 = 0;
@@ -41,25 +41,54 @@ function solve(v: string, min: number, max: number): Result {
         }
 
         const upward = line[0] < line[1];
-        if (safeLine(line, upward, min, max)){
+        if (safeLine(line, upward, min, max, 0)){
             p1++;
         }
+        
+        if (safeLine(line, upward, min, max, 1)){
+            p2++;
+        }
+        
     }
     return {p1, p2}
 }
 
-const safeLine = (line: number[], upward: boolean, min: number, max: number): boolean => {
-    for(let i =0; i < line.length-1; i++){
-       const a = line[i];
-       const b = line[i+1];
+const safeLine = (line: number[], upward: boolean, min: number, max: number, numberOfSkips: number): boolean => {
+    const compareWith = (thisId: number, nextId: number): boolean | null => {
+        if(nextId >= line.length) return null;
+
+       const a = line[thisId];
+       const b = line[nextId];
 
        const diff = upward 
         ? b-a 
         : a-b;
-        
-        if (diff < min || diff > max){
+
+        return diff >= min && diff <= max
+    }
+
+    for(let i =0; i < line.length; i++){
+        let res = compareWith(i, i+1)
+        if (res === null) {
+            break
+        } else if (res === true) {
+            continue;
+        } else if (numberOfSkips <= 0) {
+            return false;
+        }
+        console.log(`lien ${line} mismatch on ${line[i]} ${line[i+1]}, idx ${i}`)
+
+        res = compareWith(i-1, i+2)
+        if (res === true) {
+            numberOfSkips--;
+            console.log(`line ${line} skipping from ${line[i+1]} idx  ${i+1}`)
+            i = i+1;            
+        } else if (res === null) {
+            break
+        } else if (res === false) {
             return false
         }
+
     }
     return true
 }
